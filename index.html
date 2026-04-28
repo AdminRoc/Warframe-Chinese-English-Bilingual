@@ -739,17 +739,15 @@ function classify(slug, thumb) {
   return 'weapon';
 }
 
-async function fetchItems({ apiVersion, lang, signal }) {
-  const baseUrl = ENDPOINTS[apiVersion];
-  
+async function fetchItems({ lang, signal }) {
   try {
-    const res = await fetch(baseUrl, {
+    const res = await fetch(ENDPOINT, {
       method: 'GET',
       headers: { 
         'Accept': 'application/json', 
-        'Language': lang,
-        'Platform': 'pc',
-        'Crossplay': 'true'
+        'language': lang, // 注意API文档使用小写'language'
+        'platform': 'pc',
+        'crossplay': 'true'
       },
       signal,
     });
@@ -765,10 +763,8 @@ async function fetchItems({ apiVersion, lang, signal }) {
       throw new Error(`JSON 解析失败: ${e.message}`);
     }
     
-    // 调试日志
-    console.log('API Response:', json);
-    
-    const items = json?.data ?? [];
+    // 修复3: API v2返回结构为 { payload: { items: [...] } }
+    const items = json?.payload?.items ?? [];
     if (!Array.isArray(items)) {
       throw new Error(`预期返回数组，但得到: ${typeof items}`);
     }
@@ -919,12 +915,13 @@ function App() {
     if (phase === 'busy') return;
     setLogs([]); setRows([]); setProgress(0); setPhase('busy');
     const controller = new AbortController(); abortRef.current = controller;
-    log(`API: ${apiVersion.toUpperCase()} · Language: ${zhCode}`, 'info');
+    log(`API: WFM v2 · Language: ${zhCode}`, 'info');
 
     try {
       log('请求物品列表（包含中英文翻译）...', 'info');
       setProgress(20);
-      const itemList = await fetchItems({ apiVersion, lang: zhCode, signal: controller.signal });
+      // 修复4: 移除未使用的apiVersion参数
+      const itemList = await fetchItems({ lang: zhCode, signal: controller.signal });
       log(`✓ 返回 ${itemList.length} 项`, 'ok');
       setProgress(80);
 
