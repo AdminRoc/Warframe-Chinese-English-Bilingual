@@ -56,7 +56,7 @@
 
 ---
 
-🧩 技术栈
+## 🧩 技术栈
 
 - 框架：React 18 + Babel Standalone (CDN 直引，无需 npm/Node.js)
 
@@ -68,15 +68,15 @@
 
 ---
 
-📜 License
+## 📜 License
 
 本项目采用 MIT License 开源协议。
 
 ---
 
-✍️ 作者与鸣谢
+## ✍️ 作者与鸣谢
 
-作者: Roc
+作者: [Roc](https://space.bilibili.com/91933543)
 
 所属: [CSC联盟](http://csc.war-frame.com)
 
