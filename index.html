@@ -5,7 +5,7 @@
 <title>WARFRAME · 中英文物品对照表 / Roc · CSC联盟</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="author" content="Roc · CSC联盟" />
-<meta name="description" content="Warframe.market 全部可交易物品中英文双语对照表生成器。作者: Roc (CSC联盟)" />
+<meta name="description" content="Warframe.market V2 API 全部可交易物品中英文双语对照表生成器。作者: Roc (CSC联盟)" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,42 +15,27 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root {
-  --bg-0: #04050a;
-  --bg-1: #08091a;
-  --line: rgba(255,255,255,0.08);
-  --line-2: rgba(255,255,255,0.16);
-  --text: #f0f3ff;
-  --text-dim: #8e98b8;
-  --text-faint: #4d5572;
+  --bg-0: #04050a; --bg-1: #08091a;
+  --line: rgba(255,255,255,0.08); --line-2: rgba(255,255,255,0.16);
+  --text: #f0f3ff; --text-dim: #8e98b8; --text-faint: #4d5572;
   --c-cyan:    oklch(0.82 0.20 195);
   --c-violet:  oklch(0.72 0.24 305);
   --c-pink:    oklch(0.75 0.24 350);
   --c-amber:   oklch(0.85 0.18 75);
   --c-lime:    oklch(0.86 0.20 130);
   --c-coral:   oklch(0.74 0.22 25);
-  --good: oklch(0.82 0.18 150);
-  --warn: oklch(0.84 0.16 75);
-  --bad:  oklch(0.72 0.22 25);
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --good: oklch(0.82 0.18 150); --warn: oklch(0.84 0.16 75); --bad: oklch(0.72 0.22 25);
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
   --display: 'Orbitron', 'Noto Sans SC', sans-serif;
-  --sans: 'Space Grotesk', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  --sans: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; min-height: 100%; }
-body {
-  background: var(--bg-0);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.55;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-}
+body { background: var(--bg-0); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--c-cyan), var(--c-violet)); border-radius: 10px; opacity: 0.6; }
 
-/* ============ COSMIC BACKDROP ============ */
 .bg-layer { position: fixed; inset: 0; z-index: -3; pointer-events: none; }
 .bg-base {
   background:
@@ -61,15 +46,9 @@ body {
     linear-gradient(180deg, #03040a 0%, #06081a 60%, #02030a 100%);
   animation: drift 32s ease-in-out infinite alternate;
 }
-@keyframes drift {
-  0%   { transform: scale(1) translate3d(0,0,0); }
-  50%  { transform: scale(1.03) translate3d(-1.5%, 1%, 0); }
-  100% { transform: scale(1.01) translate3d(2%, -1%, 0); }
-}
+@keyframes drift { 0% { transform: scale(1) translate3d(0,0,0); } 50% { transform: scale(1.03) translate3d(-1.5%, 1%, 0); } 100% { transform: scale(1.01) translate3d(2%, -1%, 0); } }
 .bg-grid {
-  background-image:
-    linear-gradient(rgba(120,180,255,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(120,180,255,0.06) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(120,180,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,180,255,0.06) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
@@ -83,611 +62,196 @@ body {
     radial-gradient(1.6px 1.6px at 82% 48%, rgba(255,200,230,0.7), transparent 60%),
     radial-gradient(1px 1px at 24% 62%, rgba(255,255,255,0.7), transparent 60%),
     radial-gradient(1.2px 1.2px at 56% 78%, rgba(200,255,230,0.6), transparent 60%),
-    radial-gradient(1px 1px at 88% 84%, rgba(255,255,255,0.6), transparent 60%),
-    radial-gradient(1.5px 1.5px at 6% 42%, rgba(255,255,255,0.5), transparent 60%);
+    radial-gradient(1px 1px at 88% 84%, rgba(255,255,255,0.6), transparent 60%);
   animation: twinkle 5s ease-in-out infinite alternate;
   z-index: -2;
 }
 @keyframes twinkle { 0% { opacity: 0.45; } 100% { opacity: 1; } }
-
-/* Scanlines */
-.bg-scan {
-  z-index: -1;
-  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px);
-  mix-blend-mode: overlay;
-  opacity: 0.7;
-}
-
-/* Floating orbs */
-.orb {
-  position: fixed; z-index: -1;
-  width: 540px; height: 540px;
-  border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.42;
-  pointer-events: none;
-  animation: orbFloat 22s ease-in-out infinite alternate;
-}
+.bg-scan { z-index: -1; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; opacity: 0.7; }
+.orb { position: fixed; z-index: -1; width: 540px; height: 540px; border-radius: 50%; filter: blur(90px); opacity: 0.42; pointer-events: none; animation: orbFloat 22s ease-in-out infinite alternate; }
 .orb.a { top: -160px; left: -120px; background: var(--c-cyan); }
 .orb.b { top: 30%; right: -180px; background: var(--c-violet); animation-delay: -6s; }
 .orb.c { bottom: -180px; left: 22%; background: var(--c-pink); animation-delay: -12s; }
-@keyframes orbFloat {
-  0%   { transform: translate(0,0) scale(1); }
-  50%  { transform: translate(40px, 30px) scale(1.08); }
-  100% { transform: translate(-30px, -20px) scale(0.95); }
-}
+@keyframes orbFloat { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px, 30px) scale(1.08); } 100% { transform: translate(-30px, -20px) scale(0.95); } }
 
-/* ============ LAYOUT ============ */
 .app { max-width: 1360px; margin: 0 auto; padding: 28px 28px 80px; position: relative; }
 
-/* ============ HERO ============ */
-.hero {
-  position: relative;
-  padding: 38px 40px 36px;
-  margin-bottom: 22px;
-  border-radius: 24px;
-  border: 1px solid var(--line);
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012)),
-    rgba(8, 10, 22, 0.6);
-  backdrop-filter: blur(22px) saturate(1.3);
-  -webkit-backdrop-filter: blur(22px) saturate(1.3);
-  overflow: hidden;
-}
-.hero::before {
-  content: ''; position: absolute; inset: 0;
-  background:
-    linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%);
-  background-size: 250% 100%;
-  animation: heroShine 7s linear infinite;
-  pointer-events: none;
-}
+.hero { position: relative; padding: 38px 40px 36px; margin-bottom: 22px; border-radius: 24px; border: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012)), rgba(8, 10, 22, 0.6);
+  backdrop-filter: blur(22px) saturate(1.3); -webkit-backdrop-filter: blur(22px) saturate(1.3); overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%); background-size: 250% 100%; animation: heroShine 7s linear infinite; pointer-events: none; }
 @keyframes heroShine { from { background-position: 0% 0; } to { background-position: 250% 0; } }
-.hero::after {
-  content: ''; position: absolute; inset: -1px; border-radius: 24px;
-  padding: 1px;
-  background: conic-gradient(from var(--ang, 0deg),
-    transparent 0%,
-    var(--c-cyan) 12%,
-    transparent 24%,
-    var(--c-violet) 50%,
-    transparent 62%,
-    var(--c-pink) 80%,
-    transparent 100%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor; mask-composite: exclude;
-  opacity: 0.7; animation: spin 14s linear infinite;
-  pointer-events: none;
-}
+.hero::after { content: ''; position: absolute; inset: -1px; border-radius: 24px; padding: 1px;
+  background: conic-gradient(from var(--ang, 0deg), transparent 0%, var(--c-cyan) 12%, transparent 24%, var(--c-violet) 50%, transparent 62%, var(--c-pink) 80%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0.7; animation: spin 14s linear infinite; pointer-events: none; }
 @property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 @keyframes spin { to { --ang: 360deg; } }
 
 .hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; flex-wrap: wrap; position: relative; z-index: 1; }
 .hero-left { flex: 1; min-width: 320px; }
 
-.eyebrow {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin-bottom: 14px;
-}
-.eyebrow .pulse {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--c-cyan);
-  box-shadow: 0 0 0 0 color-mix(in oklch, var(--c-cyan) 60%, transparent);
-  animation: pulse 2.4s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--c-cyan) 50%, transparent); }
-  50%      { box-shadow: 0 0 0 10px transparent; }
-}
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 14px; }
+.eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--c-cyan); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--c-cyan) 50%, transparent); } 50% { box-shadow: 0 0 0 10px transparent; } }
 .eyebrow .div { width: 32px; height: 1px; background: linear-gradient(90deg, var(--text-faint), transparent); }
 
 h1.title {
-  font-family: var(--display);
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  font-size: clamp(30px, 4.6vw, 56px);
-  line-height: 1.05;
-  margin: 0 0 10px;
-  text-transform: uppercase;
-  background: linear-gradient(95deg,
-    #fff 0%,
-    color-mix(in oklch, var(--c-cyan) 75%, white) 30%,
-    color-mix(in oklch, var(--c-violet) 75%, white) 60%,
-    color-mix(in oklch, var(--c-pink) 75%, white) 85%,
-    #fff 100%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text; background-clip: text;
-  color: transparent;
-  animation: titleShift 9s linear infinite;
-  text-shadow: 0 0 60px color-mix(in oklch, var(--c-violet) 45%, transparent);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  font-family: var(--display); font-weight: 900; letter-spacing: 0.02em;
+  font-size: clamp(30px, 4.6vw, 56px); line-height: 1.05; margin: 0 0 10px; text-transform: uppercase;
+  background: linear-gradient(95deg, #fff 0%, color-mix(in oklch, var(--c-cyan) 75%, white) 30%, color-mix(in oklch, var(--c-violet) 75%, white) 60%, color-mix(in oklch, var(--c-pink) 75%, white) 85%, #fff 100%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: titleShift 9s linear infinite; text-shadow: 0 0 60px color-mix(in oklch, var(--c-violet) 45%, transparent);
+  display: flex; flex-direction: column; gap: 2px;
 }
 @keyframes titleShift { from { background-position: 0% 50%; } to { background-position: 250% 50%; } }
-h1.title .cn {
-  font-family: 'Noto Sans SC', sans-serif;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  font-size: 0.78em;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-h1.title .cn::after {
-  content: '';
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(90deg, color-mix(in oklch, var(--c-violet) 60%, transparent), transparent);
-  border-radius: 2px;
-  max-width: 220px;
-}
-h1.title .en {
-  font-size: 1em;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-}
+h1.title .cn { font-family: 'Noto Sans SC', sans-serif; font-weight: 900; letter-spacing: 0.04em; font-size: 0.78em; display: flex; align-items: center; gap: 18px; }
+h1.title .cn::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, color-mix(in oklch, var(--c-violet) 60%, transparent), transparent); border-radius: 2px; max-width: 220px; }
+h1.title .en { font-size: 1em; letter-spacing: 0.04em; white-space: nowrap; }
 
-p.lead {
-  color: var(--text-dim);
-  max-width: 64ch;
-  font-size: 15.5px;
-  line-height: 1.62;
-  margin: 8px 0 0;
-}
-p.lead code {
-  font-family: var(--mono); font-size: 12.5px;
-  background: rgba(255,255,255,0.08);
-  padding: 2px 8px; border-radius: 5px;
-  border: 1px solid var(--line);
-  color: color-mix(in oklch, var(--c-cyan) 70%, white);
-}
+p.lead { color: var(--text-dim); max-width: 64ch; font-size: 15.5px; line-height: 1.62; margin: 8px 0 0; }
+p.lead code { font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 5px; border: 1px solid var(--line); color: color-mix(in oklch, var(--c-cyan) 70%, white); }
 p.lead strong { color: #fff; }
 
-/* AUTHOR CARD — much bigger Roc */
-.author-card {
-  position: relative;
-  padding: 22px 26px;
-  border-radius: 18px;
-  border: 1px solid var(--line-2);
-  background:
-    linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)),
-    rgba(8, 10, 22, 0.7);
-  backdrop-filter: blur(12px);
-  min-width: 280px;
-  text-align: right;
-  font-family: var(--mono);
-  overflow: hidden;
-}
-.author-card::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--c-cyan) 35%, transparent), transparent 60%);
-  pointer-events: none;
-}
-.author-card .author-label {
-  font-size: 10px;
-  letter-spacing: 0.32em;
-  color: var(--text-faint);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-}
+.author-card { position: relative; padding: 22px 26px; border-radius: 18px; border: 1px solid var(--line-2);
+  background: linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)), rgba(8, 10, 22, 0.7);
+  backdrop-filter: blur(12px); min-width: 280px; text-align: right; font-family: var(--mono); overflow: hidden; }
+.author-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--c-cyan) 35%, transparent), transparent 60%); pointer-events: none; }
+.author-card .author-label { font-size: 10px; letter-spacing: 0.32em; color: var(--text-faint); margin-bottom: 4px; text-transform: uppercase; }
 .author-card .roc {
-  font-family: var(--display);
-  font-weight: 900;
-  font-size: 56px;
-  line-height: 0.95;
-  letter-spacing: 0.04em;
-  margin: 2px 0 8px;
-  background: linear-gradient(115deg, var(--c-cyan) 0%, var(--c-violet) 50%, var(--c-pink) 100%);
-  background-size: 200% 100%;
+  font-family: var(--display); font-weight: 900; font-size: 56px; line-height: 0.95; letter-spacing: 0.04em; margin: 2px 0 8px;
+  background: linear-gradient(115deg, var(--c-cyan) 0%, var(--c-violet) 50%, var(--c-pink) 100%); background-size: 200% 100%;
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: titleShift 6s linear infinite;
-  text-shadow: 0 0 40px color-mix(in oklch, var(--c-violet) 55%, transparent);
-  filter: drop-shadow(0 4px 18px color-mix(in oklch, var(--c-violet) 50%, transparent));
+  animation: titleShift 6s linear infinite; filter: drop-shadow(0 4px 18px color-mix(in oklch, var(--c-violet) 50%, transparent));
 }
-.author-card .from {
-  font-size: 12px;
-  color: var(--text-dim);
-  letter-spacing: 0.12em;
-  margin-bottom: 10px;
-}
-.author-card .from strong {
-  color: #fff; font-weight: 700; letter-spacing: 0.06em;
-  background: linear-gradient(90deg, var(--c-amber), var(--c-pink));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.author-card .source {
-  font-size: 11px;
-  color: var(--text-faint);
-  letter-spacing: 0.06em;
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
-  margin-top: 6px;
-}
+.author-card .from { font-size: 12px; color: var(--text-dim); letter-spacing: 0.12em; margin-bottom: 10px; }
+.author-card .from strong { background: linear-gradient(90deg, var(--c-amber), var(--c-pink)); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; }
+.author-card .source { font-size: 11px; color: var(--text-faint); letter-spacing: 0.06em; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; }
 .author-card .source span { color: var(--text-dim); font-weight: 500; }
-.author-card .cta {
-  display: inline-flex; align-items: center; gap: 8px;
-  margin-top: 12px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklch, var(--c-cyan) 55%, transparent);
-  background: color-mix(in oklch, var(--c-cyan) 15%, transparent);
-  color: #fff;
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  font-family: var(--sans);
-  transition: transform .18s, border-color .18s, background .18s, box-shadow .18s;
-}
-.author-card .cta:hover {
-  transform: translateY(-2px);
-  border-color: var(--c-cyan);
-  background: color-mix(in oklch, var(--c-cyan) 28%, transparent);
-  box-shadow: 0 8px 24px -8px color-mix(in oklch, var(--c-cyan) 60%, transparent);
-}
+.author-card .cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--c-cyan) 55%, transparent); background: color-mix(in oklch, var(--c-cyan) 15%, transparent);
+  color: #fff; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; font-family: var(--sans);
+  transition: transform .18s, border-color .18s, background .18s, box-shadow .18s; }
+.author-card .cta:hover { transform: translateY(-2px); border-color: var(--c-cyan); background: color-mix(in oklch, var(--c-cyan) 28%, transparent); box-shadow: 0 8px 24px -8px color-mix(in oklch, var(--c-cyan) 60%, transparent); }
 .author-card .cta .arrow { transition: transform .18s; }
 .author-card .cta:hover .arrow { transform: translateX(3px); }
 
-/* ============ CARDS ============ */
-.card {
-  position: relative;
-  border-radius: 20px;
-  border: 1px solid var(--line);
-  background: rgba(10, 13, 26, 0.55);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  padding: 24px 26px;
-  overflow: hidden;
-}
-.card::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
-  background: linear-gradient(180deg, var(--c-cyan), var(--c-violet), var(--c-pink));
-  opacity: 0.6;
-}
+.card { position: relative; border-radius: 20px; border: 1px solid var(--line); background: rgba(10, 13, 26, 0.55);
+  backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  padding: 24px 26px; overflow: hidden; }
+.card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--c-cyan), var(--c-violet), var(--c-pink)); opacity: 0.6; }
 .card + .card { margin-top: 18px; }
 
 .heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-.heading .badge-num {
-  width: 30px; height: 30px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--c-cyan), var(--c-violet));
-  color: #04060c; font-family: var(--display); font-weight: 800; font-size: 13px;
-  box-shadow: 0 4px 14px -4px color-mix(in oklch, var(--c-violet) 70%, transparent);
-}
-.heading h2 {
-  font-family: var(--display);
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--text-dim);
-  margin: 0;
-  font-weight: 700;
-}
-.heading .heading-cn {
-  font-family: 'Noto Sans SC', sans-serif;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--text-dim);
-  letter-spacing: 0.04em;
-  margin-left: 4px;
-}
+.heading .badge-num { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px;
+  background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); color: #04060c; font-family: var(--display); font-weight: 800; font-size: 13px;
+  box-shadow: 0 4px 14px -4px color-mix(in oklch, var(--c-violet) 70%, transparent); }
+.heading h2 { font-family: var(--display); font-size: 14px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-dim); margin: 0; font-weight: 700; }
+.heading .heading-cn { font-family: 'Noto Sans SC', sans-serif; font-weight: 700; font-size: 14px; color: var(--text-dim); letter-spacing: 0.04em; margin-left: 4px; }
 
-/* Form */
 .row { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
 .row + .row { margin-top: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-}
-select, input[type=text] {
-  background: rgba(4, 5, 12, 0.85);
-  color: var(--text);
-  border: 1px solid var(--line-2);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-family: var(--sans);
-  font-size: 13.5px;
-  min-width: 220px;
-  transition: border-color .2s, box-shadow .2s, background .2s;
-}
-select:focus, input[type=text]:focus {
-  outline: none;
-  border-color: color-mix(in oklch, var(--c-cyan) 75%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-cyan) 22%, transparent);
-}
+.field label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-faint); }
+select, input[type=text] { background: rgba(4, 5, 12, 0.85); color: var(--text); border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 10px 14px; font-family: var(--sans); font-size: 13.5px; min-width: 220px;
+  transition: border-color .2s, box-shadow .2s, background .2s; }
+select:focus, input[type=text]:focus { outline: none; border-color: color-mix(in oklch, var(--c-cyan) 75%, transparent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-cyan) 22%, transparent); }
 
-button {
-  position: relative;
-  background: rgba(255,255,255,0.04);
-  color: var(--text);
-  border: 1px solid var(--line-2);
-  border-radius: 11px;
-  padding: 11px 18px;
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: border-color .2s, transform .15s, background .2s, box-shadow .2s, color .2s;
-  overflow: hidden;
-  white-space: nowrap;
-}
-button:hover:not(:disabled) {
-  border-color: color-mix(in oklch, var(--c-cyan) 70%, transparent);
-  background: rgba(255,255,255,0.07);
-  transform: translateY(-1px);
-}
+button { position: relative; background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--line-2); border-radius: 11px;
+  padding: 11px 18px; font-family: var(--sans); font-weight: 600; font-size: 13px; cursor: pointer; letter-spacing: 0.02em;
+  transition: border-color .2s, transform .15s, background .2s, box-shadow .2s, color .2s; overflow: hidden; white-space: nowrap; }
+button:hover:not(:disabled) { border-color: color-mix(in oklch, var(--c-cyan) 70%, transparent); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
 button:active:not(:disabled) { transform: translateY(0); }
 button:disabled { opacity: 0.35; cursor: not-allowed; }
-button.primary {
-  background: linear-gradient(135deg, var(--c-cyan), var(--c-violet));
-  border-color: transparent;
-  color: #04060c;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  box-shadow:
-    0 8px 28px -8px color-mix(in oklch, var(--c-violet) 70%, transparent),
-    inset 0 1px 0 rgba(255,255,255,0.5);
-}
+button.primary { background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); border-color: transparent; color: #04060c;
+  font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  box-shadow: 0 8px 28px -8px color-mix(in oklch, var(--c-violet) 70%, transparent), inset 0 1px 0 rgba(255,255,255,0.5); }
 button.primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 12px 36px -10px color-mix(in oklch, var(--c-violet) 80%, transparent), inset 0 1px 0 rgba(255,255,255,0.5); }
-button.primary::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
-  transform: translateX(-100%);
-  transition: transform .8s;
-}
+button.primary::after { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%); transform: translateX(-100%); transition: transform .8s; }
 button.primary:hover::after { transform: translateX(100%); }
 button.danger { color: var(--bad); border-color: color-mix(in oklch, var(--bad) 50%, transparent); }
 button.ghost { background: transparent; }
-button.export-xlsx {
-  background: linear-gradient(135deg, var(--c-lime), var(--c-amber));
-  color: #051010; font-weight: 800; border-color: transparent;
-  box-shadow: 0 8px 24px -10px color-mix(in oklch, var(--c-lime) 70%, transparent);
-}
+button.export-xlsx { background: linear-gradient(135deg, var(--c-lime), var(--c-amber)); color: #051010; font-weight: 800; border-color: transparent;
+  box-shadow: 0 8px 24px -10px color-mix(in oklch, var(--c-lime) 70%, transparent); }
 button.export-xlsx:hover:not(:disabled) { filter: brightness(1.08); }
 
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .toolbar .spacer { flex: 1; }
 
-/* Progress + log */
-.progress {
-  height: 5px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 16px;
-  position: relative;
-}
-.progress > div {
-  height: 100%;
-  background: linear-gradient(90deg, var(--c-cyan), var(--c-violet), var(--c-pink), var(--c-amber));
-  background-size: 250% 100%;
-  animation: progressShimmer 1.4s linear infinite;
-  transition: width .35s ease;
-  box-shadow: 0 0 16px color-mix(in oklch, var(--c-violet) 60%, transparent);
-}
+.progress { height: 5px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-top: 16px; position: relative; }
+.progress > div { height: 100%; background: linear-gradient(90deg, var(--c-cyan), var(--c-violet), var(--c-pink), var(--c-amber)); background-size: 250% 100%;
+  animation: progressShimmer 1.4s linear infinite; transition: width .35s ease; box-shadow: 0 0 16px color-mix(in oklch, var(--c-violet) 60%, transparent); }
 @keyframes progressShimmer { to { background-position: 250% 0; } }
 
-.log {
-  margin-top: 16px;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 12px 16px;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  max-height: 180px;
-  overflow-y: auto;
-  scroll-behavior: smooth;
-}
+.log { margin-top: 16px; background: rgba(0,0,0,0.55); border: 1px solid var(--line); border-radius: 11px; padding: 12px 16px;
+  font-family: var(--mono); font-size: 12px; color: var(--text-dim); max-height: 180px; overflow-y: auto; scroll-behavior: smooth; }
 .log .line { padding: 2px 0; white-space: pre-wrap; opacity: 0; transform: translateY(4px); animation: logIn .25s ease forwards; }
 @keyframes logIn { to { opacity: 1; transform: none; } }
 .log .ts { color: var(--text-faint); margin-right: 10px; }
-.log .ok .msg { color: var(--good); }
-.log .warn .msg { color: var(--warn); }
-.log .err .msg { color: var(--bad); }
+.log .ok .msg { color: var(--good); } .log .warn .msg { color: var(--warn); } .log .err .msg { color: var(--bad); }
 
-/* Stats */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin: 22px 0;
-}
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 22px 0; }
 @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-.stat {
-  position: relative;
-  background: rgba(10, 13, 26, 0.55);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 18px 20px;
-  overflow: hidden;
-  backdrop-filter: blur(12px);
-}
-.stat::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-  background: linear-gradient(180deg, var(--c1, var(--c-cyan)), var(--c2, var(--c-violet)));
-}
-.stat::after {
-  content: ''; position: absolute; right: -50px; top: -50px;
-  width: 140px; height: 140px;
-  background: radial-gradient(circle, color-mix(in oklch, var(--c1, var(--c-cyan)) 45%, transparent), transparent 60%);
-  filter: blur(20px); opacity: 0.5;
-}
-.stat .k {
-  font-family: var(--mono);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--text-faint);
-  position: relative; z-index: 1;
-}
-.stat .v {
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 32px;
-  margin-top: 6px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  position: relative; z-index: 1;
-}
-.stat .v.gradient {
-  background: linear-gradient(120deg, var(--c1, var(--c-cyan)), var(--c2, var(--c-violet)));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.stat .sub {
-  font-family: var(--mono); font-size: 10px;
-  color: var(--text-faint); letter-spacing: 0.1em;
-  margin-top: 4px; position: relative; z-index: 1;
-}
+.stat { position: relative; background: rgba(10, 13, 26, 0.55); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; overflow: hidden; backdrop-filter: blur(12px); }
+.stat::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--c1, var(--c-cyan)), var(--c2, var(--c-violet))); }
+.stat::after { content: ''; position: absolute; right: -50px; top: -50px; width: 140px; height: 140px;
+  background: radial-gradient(circle, color-mix(in oklch, var(--c1, var(--c-cyan)) 45%, transparent), transparent 60%); filter: blur(20px); opacity: 0.5; }
+.stat .k { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-faint); position: relative; z-index: 1; }
+.stat .v { font-family: var(--display); font-weight: 800; font-size: 32px; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; position: relative; z-index: 1; }
+.stat .v.gradient { background: linear-gradient(120deg, var(--c1, var(--c-cyan)), var(--c2, var(--c-violet))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat .sub { font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; margin-top: 4px; position: relative; z-index: 1; }
 
-/* Chips */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  display: inline-flex; align-items: center; gap: 9px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--line-2);
-  background: rgba(255,255,255,0.03);
-  font-size: 12px;
-  color: var(--text-dim);
-  cursor: pointer;
-  user-select: none;
-  transition: border-color .15s, background .15s, color .15s, transform .12s, box-shadow .15s;
-  font-family: var(--mono);
-  letter-spacing: 0.04em;
-}
+.chip { display: inline-flex; align-items: center; gap: 9px; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: rgba(255,255,255,0.03); font-size: 12px; color: var(--text-dim); cursor: pointer; user-select: none;
+  transition: border-color .15s, background .15s, color .15s, transform .12s, box-shadow .15s; font-family: var(--mono); letter-spacing: 0.04em; }
 .chip:hover { border-color: var(--line-2); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
-.chip.on {
-  background: linear-gradient(135deg, color-mix(in oklch, var(--c, var(--c-cyan)) 30%, transparent), color-mix(in oklch, var(--c, var(--c-cyan)) 12%, transparent));
-  border-color: color-mix(in oklch, var(--c, var(--c-cyan)) 65%, transparent);
-  color: #fff;
-  box-shadow: 0 4px 18px -8px color-mix(in oklch, var(--c, var(--c-cyan)) 70%, transparent);
-}
+.chip.on { background: linear-gradient(135deg, color-mix(in oklch, var(--c, var(--c-cyan)) 30%, transparent), color-mix(in oklch, var(--c, var(--c-cyan)) 12%, transparent));
+  border-color: color-mix(in oklch, var(--c, var(--c-cyan)) 65%, transparent); color: #fff;
+  box-shadow: 0 4px 18px -8px color-mix(in oklch, var(--c, var(--c-cyan)) 70%, transparent); }
 .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--c-cyan)); box-shadow: 0 0 8px var(--c, var(--c-cyan)); }
-.chip .count {
-  font-size: 10px;
-  background: rgba(0,0,0,0.45);
-  padding: 1px 7px;
-  border-radius: 999px;
-  color: var(--text-dim);
-}
+.chip .count { font-size: 10px; background: rgba(0,0,0,0.45); padding: 1px 7px; border-radius: 999px; color: var(--text-dim); }
 .chip.on .count { background: rgba(0,0,0,0.4); color: #fff; }
-
 .chip-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .chip-bar .mini { font-family: var(--mono); font-size: 11px; color: var(--text-faint); display: inline-flex; gap: 6px; }
 .chip-bar .mini button { padding: 5px 11px; font-size: 11px; border-radius: 7px; font-family: var(--mono); }
 
-/* Table */
 .table-card { padding: 0; }
-.table-toolbar {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--line);
-  background: rgba(255,255,255,0.02);
-}
+.table-toolbar { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.02); }
 .search-wrap { position: relative; flex: 1; max-width: 480px; }
 .search-wrap input { width: 100%; padding-left: 38px; }
 .search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-faint); }
-.table-toolbar .count {
-  margin-left: auto;
-  color: var(--text-faint);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-}
+.table-toolbar .count { margin-left: auto; color: var(--text-faint); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; }
 .table-scroll { max-height: 600px; overflow: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-thead th {
-  position: sticky; top: 0; z-index: 1;
-  background: rgba(8,10,20,0.96);
-  backdrop-filter: blur(8px);
-  text-align: left;
-  padding: 12px 20px;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  border-bottom: 1px solid var(--line);
-  font-weight: 700;
-  font-family: var(--mono);
-}
-tbody td {
-  padding: 11px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  vertical-align: middle;
-}
+thead th { position: sticky; top: 0; z-index: 1; background: rgba(8,10,20,0.96); backdrop-filter: blur(8px); text-align: left; padding: 12px 20px;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); border-bottom: 1px solid var(--line); font-weight: 700; font-family: var(--mono); }
+tbody td { padding: 11px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
 tbody tr { transition: background .14s; }
 tbody tr:hover td { background: rgba(255,255,255,0.04); }
 td.zh { color: #fff; font-weight: 500; font-family: 'Noto Sans SC', sans-serif; }
 td.en { color: var(--text-dim); font-family: var(--mono); font-size: 12.5px; }
-.cat-pill {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-family: var(--mono);
-  letter-spacing: 0.06em;
-  background: color-mix(in oklch, var(--c, var(--c-cyan)) 18%, transparent);
-  color: color-mix(in oklch, var(--c, var(--c-cyan)) 95%, white);
-  border: 1px solid color-mix(in oklch, var(--c, var(--c-cyan)) 35%, transparent);
-}
+.cat-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 10px; font-family: var(--mono); letter-spacing: 0.06em;
+  background: color-mix(in oklch, var(--c, var(--c-cyan)) 18%, transparent); color: color-mix(in oklch, var(--c, var(--c-cyan)) 95%, white);
+  border: 1px solid color-mix(in oklch, var(--c, var(--c-cyan)) 35%, transparent); }
 .empty { padding: 70px 24px; text-align: center; color: var(--text-faint); font-size: 13px; }
 .empty .big { font-size: 18px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; font-family: var(--display); letter-spacing: 0.06em; }
 
-/* Footer */
-footer.foot {
-  margin-top: 32px;
-  padding: 26px 28px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(6,8,18,0.55);
-  backdrop-filter: blur(12px);
-  display: flex; justify-content: space-between; gap: 24px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+footer.foot { margin-top: 32px; padding: 26px 28px; border-radius: 18px; border: 1px solid var(--line); background: rgba(6,8,18,0.55); backdrop-filter: blur(12px);
+  display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; }
 footer.foot .left { font-size: 12.5px; color: var(--text-faint); line-height: 1.75; }
 footer.foot .left strong { color: var(--text-dim); font-weight: 700; }
 footer.foot .left a { color: color-mix(in oklch, var(--c-cyan) 80%, white); text-decoration: none; }
 footer.foot .left a:hover { text-decoration: underline; }
 footer.foot .sig { text-align: right; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--text-faint); }
-footer.foot .sig .by {
-  font-family: var(--display);
-  font-size: 28px;
-  font-weight: 900; letter-spacing: 0.06em;
-  background: linear-gradient(115deg, var(--c-cyan), var(--c-violet), var(--c-pink));
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-}
+footer.foot .sig .by { font-family: var(--display); font-size: 28px; font-weight: 900; letter-spacing: 0.06em;
+  background: linear-gradient(115deg, var(--c-cyan), var(--c-violet), var(--c-pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-/* Toast */
-.toast {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-  z-index: 50;
-  padding: 12px 22px;
-  background: rgba(8,10,20,0.95);
-  border: 1px solid var(--line-2);
-  border-radius: 999px;
-  color: #fff; font-size: 13px;
-  font-family: var(--mono);
-  display: flex; align-items: center; gap: 10px;
-  backdrop-filter: blur(12px);
-  animation: toastIn .25s ease, toastOut .25s ease forwards 2.4s;
-  box-shadow: 0 14px 40px -12px rgba(0,0,0,0.8);
-}
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 50; padding: 12px 22px;
+  background: rgba(8,10,20,0.95); border: 1px solid var(--line-2); border-radius: 999px; color: #fff; font-size: 13px; font-family: var(--mono);
+  display: flex; align-items: center; gap: 10px; backdrop-filter: blur(12px);
+  animation: toastIn .25s ease, toastOut .25s ease forwards 2.4s; box-shadow: 0 14px 40px -12px rgba(0,0,0,0.8); }
 .toast .ok { color: var(--good); font-weight: 700; }
 @keyframes toastIn { from { transform: translate(-50%, 30px); opacity: 0; } }
 @keyframes toastOut { to { transform: translate(-50%, 30px); opacity: 0; } }
@@ -695,82 +259,292 @@ footer.foot .sig .by {
 .fade-in { animation: fadeUp .5s ease both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 </style>
-```
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Warframe 中英文物品对照表</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/v4-shims.min.css" integrity="sha512-89TA2jZ+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1GGzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv1Gz+1Z3GzG9Xv
-              <span className="cn">中英对照</span>
-              <span className="en">BILINGUAL ITEM ATLAS</span>
-            </h1>
-            <p className="lead">
-              基于 <code>warframe.market</code> 公开 API，通过<strong>后端代理</strong>一键获取全部可交易物品的
-              <strong> 中文 ↔ English </strong>
-              一一对应映射。支持按物品类型筛选，导出 <strong>Excel / CSV / TSV / JSON / Markdown</strong>。
-            </p>
+</head>
+<body>
+<div class="bg-layer bg-base"></div>
+<div class="bg-layer bg-grid"></div>
+<div class="bg-layer bg-stars"></div>
+<div class="bg-layer bg-scan"></div>
+<div class="orb a"></div>
+<div class="orb b"></div>
+<div class="orb c"></div>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+/* ============================================================
+ * Warframe.market V2 API
+ * Endpoint:  GET https://api.warframe.market/v2/items
+ * Headers:   Accept, Content-Type, Language, Platform, Crossplay
+ * Response:  { apiVersion, data: [{ id, slug, gameRef, tags[], i18n: { en: {name, icon, thumb, ...}, "zh-hans": {...}, ... }, vaulted, ducats, ... }] }
+ * Per V2 docs (42bytes): every item carries i18n for all supported languages in one response.
+ * Source ref: https://github.com/aldi-f/warframe-market.py (warframe_market/models/item.py)
+ * ============================================================ */
+const V2_ENDPOINT = 'https://api.warframe.market/v2/items';
+
+/* Categories driven by the V2 `tags` field — the API tells us the type natively. */
+const CATEGORIES = [
+  { id: 'set',           label: '套装 (Set)',           color: 'oklch(0.86 0.18 80)',  match: (t) => t.includes('set') },
+  { id: 'prime',         label: 'Prime 部件',            color: 'oklch(0.82 0.16 75)',  match: (t) => t.includes('prime') && !t.includes('set') },
+  { id: 'warframe',      label: 'Warframe',              color: 'oklch(0.78 0.18 195)', match: (t) => t.includes('warframe') && !t.includes('mod') && !t.includes('set') },
+  { id: 'mod',           label: 'Mod / 模组',            color: 'oklch(0.74 0.21 305)', match: (t) => t.includes('mod') },
+  { id: 'arcane',        label: 'Arcane 灵化',           color: 'oklch(0.78 0.19 285)', match: (t) => t.includes('arcane_enhancement') || t.includes('arcane') },
+  { id: 'relic',         label: '虚空遗物',              color: 'oklch(0.74 0.20 15)',  match: (t) => t.includes('relic') && !t.includes('requiem') },
+  { id: 'requiem',       label: 'Requiem 安魂',          color: 'oklch(0.78 0.18 340)', match: (t) => t.includes('requiem') },
+  { id: 'kuva_lich',     label: '弑君武器 (Kuva)',       color: 'oklch(0.74 0.20 30)',  match: (t) => t.includes('kuva_lich_weapon') || (t.includes('kuva') && t.includes('weapon')) },
+  { id: 'sister',        label: '帕弗弑君 (Tenet)',      color: 'oklch(0.78 0.18 320)', match: (t) => t.includes('sister_weapon') || t.includes('tenet_weapon') },
+  { id: 'fish',          label: '鱼类标本',              color: 'oklch(0.78 0.16 195)', match: (t) => t.includes('fish') },
+  { id: 'gem',           label: '宝石矿石',              color: 'oklch(0.82 0.18 145)', match: (t) => t.includes('gem') || t.includes('resource') },
+  { id: 'captura',       label: 'Captura 场景',          color: 'oklch(0.74 0.18 240)', match: (t) => t.includes('captura_scene') || t.includes('captura') },
+  { id: 'imprint',       label: 'Imprint 印记',          color: 'oklch(0.78 0.16 260)', match: (t) => t.includes('imprint') },
+  { id: 'skin',          label: '皮肤 / 装饰',           color: 'oklch(0.78 0.14 260)', match: (t) => t.includes('skin') || t.includes('helmet') || t.includes('syandana') || t.includes('sigil') || t.includes('armor') },
+  { id: 'melee',         label: '近战武器',              color: 'oklch(0.74 0.20 35)',  match: (t) => t.includes('melee') },
+  { id: 'pistol',        label: '手枪',                   color: 'oklch(0.78 0.18 50)',  match: (t) => t.includes('pistol') || t.includes('secondary') },
+  { id: 'rifle',         label: '步枪',                   color: 'oklch(0.74 0.20 100)', match: (t) => t.includes('rifle') || t.includes('primary') },
+  { id: 'shotgun',       label: '霰弹枪',                 color: 'oklch(0.78 0.18 60)',  match: (t) => t.includes('shotgun') },
+  { id: 'archwing',      label: 'Archwing',              color: 'oklch(0.78 0.18 220)', match: (t) => t.includes('archwing') || t.includes('arch_gun') || t.includes('arch_melee') },
+  { id: 'companion',     label: '宠物 / 战甲伙伴',       color: 'oklch(0.78 0.16 170)', match: (t) => t.includes('companion') || t.includes('sentinel') || t.includes('pet') || t.includes('kavat') || t.includes('kubrow') },
+  { id: 'other',         label: '其他',                   color: 'oklch(0.7 0.05 250)',  match: () => true },
+];
+const CATEGORY_BY_ID = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+function classifyByTags(tags) {
+  const t = (tags || []).map(x => String(x).toLowerCase());
+  for (const cat of CATEGORIES) {
+    try { if (cat.match(t)) return cat.id; } catch {}
+  }
+  return 'other';
+}
+
+async function fetchAllItems({ signal }) {
+  const res = await fetch(V2_ENDPOINT, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Language': 'en',
+      'Platform': 'pc',
+      'Crossplay': 'true',
+    },
+    signal,
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  const json = await res.json();
+  // V2 envelope: { apiVersion, data: [...] }
+  const list = json?.data ?? json?.payload?.items ?? [];
+  if (!Array.isArray(list)) throw new Error('未识别的响应结构（缺少 data 数组）');
+  return list;
+}
+
+/* Pull bilingual rows from V2 items — single request, both languages already inside item.i18n */
+function buildRows(items) {
+  const rows = [];
+  const ZH_KEYS = ['zh-hans', 'zh-Hans', 'zh', 'zh-CN', 'zh_cn'];
+  const EN_KEYS = ['en', 'en-US'];
+  for (const it of items) {
+    const slug = it.slug || it.url_name || it.id;
+    if (!slug) continue;
+    const i18n = it.i18n || {};
+    let zh = ''; for (const k of ZH_KEYS) if (i18n[k]?.name) { zh = i18n[k].name; break; }
+    let en = ''; for (const k of EN_KEYS) if (i18n[k]?.name) { en = i18n[k].name; break; }
+    if (!en) en = it.gameRef || it.game_ref || slug;
+    const cat = classifyByTags(it.tags);
+    rows.push({ slug, en, zh, cat, tags: it.tags || [] });
+  }
+  rows.sort((a, b) => (a.zh || a.en).localeCompare(b.zh || b.en, 'zh-Hans-CN'));
+  return rows;
+}
+
+/* ============ EXPORTERS ============ */
+function csvEscape(s) { const v = String(s ?? ''); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function buildCSV(rows) { return '\ufeff' + ['中文,English', ...rows.map(r => [r.zh, r.en].map(csvEscape).join(','))].join('\r\n'); }
+function buildTSV(rows) { return '\ufeff' + ['中文\tEnglish', ...rows.map(r => (r.zh || '').replace(/\t/g, ' ') + '\t' + (r.en || '').replace(/\t/g, ' '))].join('\r\n'); }
+function buildJSON(rows) { return JSON.stringify(rows.map(r => ({ 中文: r.zh, English: r.en })), null, 2); }
+function buildMD(rows) { return ['| 中文 | English |', '| --- | --- |', ...rows.map(r => `| ${(r.zh || '').replace(/\|/g, '\\|')} | ${(r.en || '').replace(/\|/g, '\\|')} |`)].join('\n'); }
+function buildXLSX(rows) {
+  const data = [['中文', 'English'], ...rows.map(r => [r.zh, r.en])];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{ wch: 36 }, { wch: 44 }];
+  ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+  ws['!autofilter'] = { ref: `A1:B${data.length}` };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Warframe Bilingual');
+  wb.Props = { Title: 'Warframe 中英文物品对照表', Subject: 'Warframe.market V2 bilingual item names', Author: 'Roc', Company: 'CSC联盟', CreatedDate: new Date() };
+  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+}
+function downloadBlob(filename, content, mime) {
+  const blob = content instanceof Uint8Array || content instanceof ArrayBuffer
+    ? new Blob([content], { type: mime })
+    : new Blob([content], { type: mime + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
+
+function Stat({ k, v, sub, c1, c2, gradient }) {
+  return (
+    <div className="stat" style={{ '--c1': c1, '--c2': c2 }}>
+      <div className="k">{k}</div>
+      <div className={'v ' + (gradient ? 'gradient' : '')}>{v}</div>
+      {sub && <div className="sub">{sub}</div>}
+    </div>
+  );
+}
+function SearchIcon() {
+  return (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>);
+}
+
+function App() {
+  const [phase, setPhase] = useState('idle');
+  const [progress, setProgress] = useState(0);
+  const [logs, setLogs] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [selectedCats, setSelectedCats] = useState(() => new Set(CATEGORIES.map(c => c.id)));
+  const [toast, setToast] = useState(null);
+  const abortRef = useRef(null);
+  const logRef = useRef(null);
+
+  const log = useCallback((msg, level = 'info') => {
+    const ts = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    setLogs(L => [...L, { ts, msg, level }]);
+  }, []);
+  useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [logs]);
+
+  const flashToast = useCallback((msg) => { setToast({ id: Date.now(), msg }); setTimeout(() => setToast(null), 2600); }, []);
+
+  const run = useCallback(async () => {
+    if (phase === 'busy') return;
+    setLogs([]); setRows([]); setProgress(0); setPhase('busy');
+    const controller = new AbortController(); abortRef.current = controller;
+    log(`API: V2  ·  ${V2_ENDPOINT}`, 'info');
+    log('请求 V2 /items —— 一次返回所有语言的 i18n 数据 ...', 'info');
+    setProgress(25);
+    try {
+      const items = await fetchAllItems({ signal: controller.signal });
+      log(`✓ 服务端返回 ${items.length} 项`, 'ok');
+      setProgress(70);
+
+      // Verify i18n shape
+      const sample = items.find(x => x.i18n);
+      if (!sample) throw new Error('响应中未发现 i18n 字段，可能 API 结构已变更');
+      const langs = Object.keys(sample.i18n);
+      log(`检测到 i18n 语言: ${langs.join(', ')}`, 'info');
+      const hasZh = langs.some(l => /^zh/i.test(l));
+      if (!hasZh) log('警告：未检测到中文语言键 (zh-hans/zh) —— 中文列将留空', 'warn');
+
+      log('整理双语字段并按 tags 自动分类 ...', 'info');
+      const r = buildRows(items).filter(x => x.zh && x.en);
+      setRows(r);
+      setProgress(100);
+
+      const tally = {};
+      for (const x of r) tally[x.cat] = (tally[x.cat] || 0) + 1;
+      const summary = Object.entries(tally).sort((a,b)=>b[1]-a[1]).slice(0, 6).map(([k, v]) => `${CATEGORY_BY_ID[k]?.label || k}:${v}`).join(' · ');
+      log(`✓ 完成 — 共 ${r.length} 项 — ${summary}`, 'ok');
+      setPhase('ok');
+      flashToast(`已获取 ${r.length} 项中英文对照`);
+    } catch (e) {
+      if (e.name === 'AbortError') { log('已取消', 'warn'); setPhase('idle'); }
+      else {
+        log('✗ ' + e.message, 'err');
+        if (/Failed to fetch|TypeError|NetworkError|CORS/i.test(e.message)) {
+          log('提示：浏览器可能阻止了跨域直连。如果 V2 端点未对外放开 CORS，请在能直连 api.warframe.market 的环境（如脚本 / 后端）调用。', 'warn');
+        }
+        setPhase('error');
+      }
+    } finally { abortRef.current = null; }
+  }, [phase, log, flashToast]);
+
+  const cancel = useCallback(() => abortRef.current?.abort(), []);
+
+  const exportRows = useMemo(() => rows.filter(r => selectedCats.has(r.cat)), [rows, selectedCats]);
+
+  const doExport = useCallback((format) => {
+    if (!exportRows.length) return;
+    const date = new Date().toISOString().slice(0, 10);
+    const stem = `warframe-bilingual_${date}`;
+    if (format === 'csv')       downloadBlob(stem + '.csv',  buildCSV(exportRows),  'text/csv');
+    else if (format === 'tsv')  downloadBlob(stem + '.tsv',  buildTSV(exportRows),  'text/tab-separated-values');
+    else if (format === 'json') downloadBlob(stem + '.json', buildJSON(exportRows), 'application/json');
+    else if (format === 'md')   downloadBlob(stem + '.md',   buildMD(exportRows),   'text/markdown');
+    else if (format === 'xlsx') downloadBlob(stem + '.xlsx', buildXLSX(exportRows), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    flashToast(`已导出 ${exportRows.length} 项 (${format.toUpperCase()})`);
+    log(`已导出 ${exportRows.length} 项 → ${stem}.${format}`, 'ok');
+  }, [exportRows, flashToast, log]);
+
+  const toggleCat = useCallback((id) => { setSelectedCats(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; }); }, []);
+  const selectAllCats = () => setSelectedCats(new Set(CATEGORIES.map(c => c.id)));
+  const selectNoneCats = () => setSelectedCats(new Set());
+  const invertCats = () => setSelectedCats(p => { const n = new Set(); for (const c of CATEGORIES) if (!p.has(c.id)) n.add(c.id); return n; });
+
+  const visibleRows = useMemo(() => {
+    let r = rows.filter(x => selectedCats.has(x.cat));
+    if (filter.trim()) {
+      const q = filter.trim().toLowerCase();
+      r = r.filter(x => x.zh.toLowerCase().includes(q) || x.en.toLowerCase().includes(q));
+    }
+    return r;
+  }, [rows, filter, selectedCats]);
+
+  const stats = useMemo(() => ({ total: rows.length, selected: exportRows.length, cats: new Set(rows.map(r => r.cat)).size }), [rows, exportRows]);
+  const catTally = useMemo(() => { const t = {}; for (const r of rows) t[r.cat] = (t[r.cat] || 0) + 1; return t; }, [rows]);
+
+  return (
+    <div className="app">
+      <header className="hero">
+        <div className="hero-row">
+          <div className="hero-left">
+            <span className="eyebrow"><span className="pulse"></span>WARFRAME · MARKETPLACE LEXICON<span className="div"></span>v4 · V2 API</span>
+            <h1 className="title"><span className="cn">中英对照</span><span className="en">BILINGUAL ITEM ATLAS</span></h1>
+            <p className="lead">基于 <code>warframe.market</code> <strong>V2 API</strong>，单次请求即可获取所有可交易物品的全语言映射 (<code>i18n</code> 字段)。 自动按服务端 <code>tags</code> 分类，导出 <strong>Excel / CSV / TSV / JSON / Markdown</strong>。</p>
           </div>
           <div className="author-card">
             <div className="author-label">AUTHOR</div>
             <div className="roc">ROC</div>
             <div className="from">来自 <strong>[CSC联盟]</strong></div>
             <div className="source">数据来源：<span>Warframe.Market</span></div>
-            <a className="cta" href="http://roc.war-frame.com" target="_blank" rel="noopener noreferrer">
-              点击获取交易建议 <span className="arrow">→</span>
-            </a>
+            <a className="cta" href="http://roc.war-frame.com" target="_blank" rel="noopener noreferrer">点击获取交易建议 <span className="arrow">→</span></a>
           </div>
         </div>
       </header>
 
       <section className="card fade-in">
-        <div className="heading">
-          <span className="badge-num">01</span>
-          <h2>DATA SOURCE</h2>
-          <span className="heading-cn">· 数据源</span>
-        </div>
+        <div className="heading"><span className="badge-num">01</span><h2>FETCH</h2><span className="heading-cn">· 拉取数据</span></div>
         <div className="row">
-          <div style={{ marginLeft: 'auto', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--mono)' }}>预加载静态数据 · 启动时由后端加载</div>
-          <div className="toolbar">
+          <div className="field" style={{ flex: 1, minWidth: 280 }}>
+            <label>API ENDPOINT</label>
+            <input type="text" value={V2_ENDPOINT} readOnly style={{ width: '100%', fontFamily: 'var(--mono)', color: 'var(--text-dim)' }} />
+          </div>
+          <div className="toolbar" style={{ marginLeft: 'auto' }}>
             {phase === 'busy'
               ? <button className="ghost danger" onClick={cancel}>取消</button>
-              : <button className="primary" onClick={fetchStaticData}>{rows.length ? '重新拉取' : '开始拉取'}</button>}
+              : <button className="primary" onClick={run}>{rows.length ? '重新拉取' : '开始拉取'}</button>}
           </div>
         </div>
-
         {phase === 'busy' && <div className="progress"><div style={{ width: progress + '%' }} /></div>}
-
         <div className="log" ref={logRef}>
-          {logs.length === 0 && (
-            <div className="line"><span className="ts">--:--:--</span><span className="msg" style={{ color: 'var(--text-faint)' }}>等待操作 — 点击"开始拉取"加载约 3500 项物品。</span></div>
-          )}
-          {logs.map((l, i) => (
-            <div key={i} className={'line ' + l.level}>
-              <span className="ts">{l.ts}</span><span className="msg">{l.msg}</span>
-            </div>
-          ))}
+          {logs.length === 0 && (<div className="line"><span className="ts">--:--:--</span><span className="msg" style={{ color: 'var(--text-faint)' }}>等待操作 — 点击"开始拉取"，V2 API 单次请求返回全部物品和所有语言。</span></div>)}
+          {logs.map((l, i) => (<div key={i} className={'line ' + l.level}><span className="ts">{l.ts}</span><span className="msg">{l.msg}</span></div>))}
         </div>
       </section>
 
       {rows.length > 0 && (
         <>
           <div className="stats fade-in">
-            <Stat k="TOTAL ITEMS" v={stats.total.toLocaleString()} sub="全部已拉取" c1="var(--c-cyan)" c2="var(--c-violet)" gradient />
+            <Stat k="TOTAL ITEMS" v={stats.total.toLocaleString()} sub="V2 / data[]" c1="var(--c-cyan)" c2="var(--c-violet)" gradient />
             <Stat k="EXPORT QUEUE" v={stats.selected.toLocaleString()} sub="将进入导出文件" c1="var(--c-violet)" c2="var(--c-pink)" gradient />
-            <Stat k="CATEGORIES" v={stats.cats} sub="已识别类别数" c1="var(--c-pink)" c2="var(--c-amber)" gradient />
-            <Stat k="SOURCE" v="WFM" sub="warframe.market · public api" c1="var(--c-amber)" c2="var(--c-lime)" gradient />
+            <Stat k="CATEGORIES" v={stats.cats} sub="由 tags 自动归类" c1="var(--c-pink)" c2="var(--c-amber)" gradient />
+            <Stat k="API" v="V2" sub="warframe.market · /v2/items" c1="var(--c-amber)" c2="var(--c-lime)" gradient />
           </div>
 
           <section className="card fade-in">
-            <div className="heading">
-              <span className="badge-num">02</span>
-              <h2>CATEGORY FILTER</h2>
-              <span className="heading-cn">· 类型筛选</span>
-            </div>
+            <div className="heading"><span className="badge-num">02</span><h2>CATEGORY FILTER</h2><span className="heading-cn">· 类型筛选</span></div>
             <div className="chip-bar" style={{ marginBottom: 14 }}>
-              <span className="mini" style={{ color: 'var(--text-dim)' }}>勾选要包含在导出中的物品类型：</span>
+              <span className="mini" style={{ color: 'var(--text-dim)' }}>勾选要包含在导出中的类别（来自服务端 tags）：</span>
               <span className="mini">
                 <button className="ghost" onClick={selectAllCats}>全选</button>
                 <button className="ghost" onClick={selectNoneCats}>清空</button>
@@ -782,21 +556,15 @@ footer.foot .sig .by {
                 const n = catTally[c.id] || 0;
                 if (n === 0) return null;
                 const on = selectedCats.has(c.id);
-                return (
-                  <span key={c.id} className={'chip ' + (on ? 'on' : '')} style={{ '--c': c.color }} onClick={() => toggleCat(c.id)}>
-                    <span className="dot"></span><span>{c.label}</span><span className="count">{n}</span>
-                  </span>
-                );
+                return (<span key={c.id} className={'chip ' + (on ? 'on' : '')} style={{ '--c': c.color }} onClick={() => toggleCat(c.id)}>
+                  <span className="dot"></span><span>{c.label}</span><span className="count">{n}</span>
+                </span>);
               })}
             </div>
           </section>
 
           <section className="card fade-in">
-            <div className="heading">
-              <span className="badge-num">03</span>
-              <h2>EXPORT</h2>
-              <span className="heading-cn">· 导出</span>
-            </div>
+            <div className="heading"><span className="badge-num">03</span><h2>EXPORT</h2><span className="heading-cn">· 导出</span></div>
             <div className="toolbar">
               <button className="export-xlsx" onClick={() => doExport('xlsx')} disabled={!exportRows.length}>📊 下载 Excel (.xlsx)</button>
               <button className="primary" onClick={() => doExport('csv')} disabled={!exportRows.length}>下载 CSV</button>
@@ -812,10 +580,7 @@ footer.foot .sig .by {
 
           <section className="card table-card fade-in" style={{ marginTop: 18 }}>
             <div className="table-toolbar">
-              <div className="search-wrap">
-                <SearchIcon />
-                <input type="text" placeholder="搜索  中文 / English ..." value={filter} onChange={e => setFilter(e.target.value)} />
-              </div>
+              <div className="search-wrap"><SearchIcon /><input type="text" placeholder="搜索 中文 / English ..." value={filter} onChange={e => setFilter(e.target.value)} /></div>
               <span className="count">显示 {visibleRows.length.toLocaleString()} / {rows.length.toLocaleString()}</span>
             </div>
             <div className="table-scroll">
@@ -823,52 +588,36 @@ footer.foot .sig .by {
                 <div className="empty"><div className="big">无匹配条目</div><div>调整搜索词或类型筛选 ↑</div></div>
               ) : (
                 <table>
-                  <thead>
-                    <tr>
-                      <th style={{ width: 56 }}>#</th>
-                      <th style={{ width: '38%' }}>中文</th>
-                      <th>English</th>
-                      <th style={{ width: 170 }}>类别</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th style={{ width: 56 }}>#</th><th style={{ width: '38%' }}>中文</th><th>English</th><th style={{ width: 170 }}>类别</th></tr></thead>
                   <tbody>
                     {visibleRows.slice(0, 800).map((r, i) => {
                       const cat = CATEGORY_BY_ID[r.cat];
-                      return (
-                        <tr key={r.url_name}>
-                          <td style={{ color: 'var(--text-faint)', fontFamily: 'var(--mono)', fontSize: 11 }}>{i + 1}</td>
-                          <td className="zh">{r.zh}</td>
-                          <td className="en">{r.en}</td>
-                          <td><span className="cat-pill" style={{ '--c': cat?.color || 'var(--c-cyan)' }}>{cat?.label || r.cat}</span></td>
-                        </tr>
-                      );
+                      return (<tr key={r.slug}>
+                        <td style={{ color: 'var(--text-faint)', fontFamily: 'var(--mono)', fontSize: 11 }}>{i + 1}</td>
+                        <td className="zh">{r.zh}</td>
+                        <td className="en">{r.en}</td>
+                        <td><span className="cat-pill" style={{ '--c': cat?.color || 'var(--c-cyan)' }}>{cat?.label || r.cat}</span></td>
+                      </tr>);
                     })}
                   </tbody>
                 </table>
               )}
-              {visibleRows.length > 800 && (
-                <div style={{ padding: '12px 20px', color: 'var(--text-faint)', fontSize: 11, fontFamily: 'var(--mono)', borderTop: '1px solid var(--line)' }}>
-                  表格仅预览前 800 行 — 完整 {visibleRows.length.toLocaleString()} 行会包含在导出文件中
-                </div>
-              )}
+              {visibleRows.length > 800 && (<div style={{ padding: '12px 20px', color: 'var(--text-faint)', fontSize: 11, fontFamily: 'var(--mono)', borderTop: '1px solid var(--line)' }}>
+                表格仅预览前 800 行 — 完整 {visibleRows.length.toLocaleString()} 行会包含在导出文件中
+              </div>)}
             </div>
           </section>
         </>
       )}
 
       {rows.length === 0 && phase !== 'busy' && (
-        <section className="card fade-in">
-          <div className="empty">
-            <div className="big">READY</div>
-            <div>调整上方设置，然后点击 <strong style={{ color: 'var(--text-dim)' }}>开始拉取</strong></div>
-          </div>
-        </section>
+        <section className="card fade-in"><div className="empty"><div className="big">READY</div><div>点击 <strong style={{ color: 'var(--text-dim)' }}>开始拉取</strong> 调用 V2 API</div></div></section>
       )}
 
       <footer className="foot">
         <div className="left">
-          <div><strong>数据来源</strong> · Warframe.Market 公开 API <a href="https://warframe.market/api_docs" target="_blank" rel="noopener noreferrer">api_docs ↗</a></div>
-          <div><strong>API v2 文档</strong> · <a href="https://42bytes.notion.site/WFM-Api-v2-Documentation-5d987e4aa2f74b55a80db1a09932459d" target="_blank" rel="noopener noreferrer">42bytes ↗</a></div>
+          <div><strong>API V2 端点</strong> · <code style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>GET {V2_ENDPOINT}</code></div>
+          <div><strong>V2 文档</strong> · <a href="https://42bytes.notion.site/WFM-Api-v2-Documentation-5d987e4aa2f74b55a80db1a09932459d" target="_blank" rel="noopener noreferrer">42bytes ↗</a></div>
           <div><strong>交易建议</strong> · <a href="http://roc.war-frame.com" target="_blank" rel="noopener noreferrer">roc.war-frame.com ↗</a></div>
           <div style={{ marginTop: 6 }}>本工具仅做语言映射，不会写入任何账号数据。</div>
         </div>
