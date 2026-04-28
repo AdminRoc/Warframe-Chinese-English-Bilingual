@@ -713,12 +713,6 @@ const ENDPOINTS = {
   v1: 'https://api.warframe.market/v1/items',
   v2: 'https://api.warframe.market/v2/items',
 };
-const PROXIES = {
-  corsh:      { label: 'corsproxy.io  (推荐)',     wrap: u => 'https://corsproxy.io/?' + encodeURIComponent(u) },
-  allorigins: { label: 'allorigins.win',           wrap: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u) },
-  thingproxy: { label: 'thingproxy.freeboard.io',  wrap: u => 'https://thingproxy.freeboard.io/fetch/' + u },
-  none:       { label: '直连 (大概率失败)',         wrap: u => u },
-};
 const ZH_CODES = ['zh-hans', 'zh'];
 
 const CATEGORIES = [
@@ -748,17 +742,42 @@ function classify(slug, thumb) {
   return 'weapon';
 }
 
-async function fetchItems({ apiVersion, lang, proxy, signal }) {
+async function fetchItems({ apiVersion, lang, signal }) {
   const baseUrl = ENDPOINTS[apiVersion];
-  const url = PROXIES[proxy].wrap(baseUrl);
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: { 'Accept': 'application/json', 'Language': lang, 'Platform': 'pc' },
-    signal,
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-  const json = await res.json();
-  return json?.payload?.items ?? json?.data ?? json?.items ?? [];
+  
+  try {
+    const res = await fetch(baseUrl, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json', 'Language': lang, 'Platform': 'pc' },
+      signal,
+    });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+    
+    let json;
+    try {
+      json = await res.json();
+    } catch (e) {
+      throw new Error(`JSON 解析失败: ${e.message}`);
+    }
+    
+    const items = json?.payload?.items ?? json?.data ?? json?.items ?? [];
+    if (!Array.isArray(items)) {
+      throw new Error(`预期返回数组，但得到: ${typeof items}`);
+    }
+    
+    return items;
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw e;
+    } else if (e.message.includes('Failed to fetch')) {
+      throw new Error(`网络请求失败 — 请检查网络连接。原始错误: ${e.message}`);
+    } else {
+      throw e;
+    }
+  }
 }
 function normalizeItem(it) {
   return {
@@ -855,7 +874,6 @@ function SearchIcon() {
 function App() {
   const [apiVersion, setApiVersion] = useState('v1');
   const [zhCode, setZhCode] = useState('zh-hans');
-  const [proxy, setProxy] = useState('corsh');
 
   const [phase, setPhase] = useState('idle');
   const [progress, setProgress] = useState(0);
@@ -882,12 +900,12 @@ function App() {
     if (phase === 'busy') return;
     setLogs([]); setRows([]); setProgress(0); setPhase('busy');
     const controller = new AbortController(); abortRef.current = controller;
-    log(`API: ${apiVersion.toUpperCase()}  ·  代理: ${PROXIES[proxy].label}`, 'info');
+    log(`API: ${apiVersion.toUpperCase()}`, 'info');
 
     try {
       log('请求英文物品列表 (Language: en) ...', 'info');
       setProgress(20);
-      const enList = await fetchItems({ apiVersion, lang: 'en', proxy, signal: controller.signal });
+      const enList = await fetchItems({ apiVersion, lang: 'en', signal: controller.signal });
       log(`✓ 英文返回 ${enList.length} 项`, 'ok');
       setProgress(55);
 
@@ -896,7 +914,7 @@ function App() {
       for (const code of zhCandidates) {
         try {
           log(`请求中文物品列表 (Language: ${code}) ...`, 'info');
-          const list = await fetchItems({ apiVersion, lang: code, proxy, signal: controller.signal });
+          const list = await fetchItems({ apiVersion, lang: code, signal: controller.signal });
           const sampleN = Math.min(20, list.length, enList.length);
           let differing = 0;
           for (let i = 0; i < sampleN; i++) {
@@ -929,12 +947,10 @@ function App() {
       if (e.name === 'AbortError') { log('已取消', 'warn'); setPhase('idle'); }
       else {
         log('✗ ' + e.message, 'err');
-        if (proxy === 'none') log('提示：请切换为 corsproxy.io / allorigins.win 等代理重试。', 'warn');
-        else log('提示：可尝试切换其他代理选项。', 'warn');
         setPhase('error');
       }
     } finally { abortRef.current = null; }
-  }, [apiVersion, proxy, zhCode, phase, log, flashToast]);
+  }, [apiVersion, zhCode, phase, log, flashToast]);
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 
@@ -1049,12 +1065,6 @@ function App() {
             <select value={zhCode} onChange={e => setZhCode(e.target.value)} disabled={phase === 'busy'}>
               <option value="zh-hans">zh-hans · 简体</option>
               <option value="zh">zh</option>
-            </select>
-          </div>
-          <div className="field">
-            <label>CORS 代理</label>
-            <select value={proxy} onChange={e => setProxy(e.target.value)} disabled={phase === 'busy'}>
-              {Object.entries(PROXIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
           <div className="toolbar" style={{ marginLeft: 'auto' }}>
