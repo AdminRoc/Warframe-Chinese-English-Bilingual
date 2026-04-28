@@ -709,7 +709,8 @@ footer.foot .sig .by {
 <script type="text/babel" data-presets="env,react">
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-const ENDPOINT = 'https://api.warframe.market/v2/items';
+// 修改: 将 ENDPOINT 改为本地后端代理地址
+const ENDPOINT = '/api/items';
 const ZH_CODES = ['zh-hans', 'zh'];
 
 const CATEGORIES = [
@@ -741,16 +742,13 @@ function classify(slug, thumb) {
 
 async function fetchItems({ lang, signal }) {
   try {
-    // 使用正确的请求头格式，移除不可靠的代理方案
-    const res = await fetch(ENDPOINT, {
+    // 修改: 添加语言参数到URL查询字符串
+    const url = `${ENDPOINT}?lang=${encodeURIComponent(lang)}`;
+    const res = await fetch(url, {
       method: 'GET',
       headers: { 
         'Accept': 'application/json',
-        'Accept-Language': lang,
-        'platform': 'pc',
-        'crossplay': 'true',
-        // 添加User-Agent以避免403错误
-        'User-Agent': 'WarframeBilingualTool/3.0 (contact: roc@war-frame.com)'
+        'X-Requested-With': 'WarframeBilingualTool'
       },
       signal,
     });
@@ -777,11 +775,12 @@ async function fetchItems({ lang, signal }) {
       throw error;
     }
     
-    // 提供更清晰的错误信息
+    // 修改: 更新错误提示，移除 CORS 相关说明
     if (error.message.includes('403')) {
       throw new Error('✗ HTTP 403 Forbidden — API拒绝访问。请稍后再试或检查API状态。');
     } else if (error.message.includes('Failed to fetch')) {
-      throw new Error('✗ 网络请求失败 — 可能是CORS限制或网络问题。建议使用支持CORS的环境访问。');
+      // 由于现在通过后端代理，不应该再出现 CORS 问题
+      throw new Error(`✗ 网络请求失败 — 请检查后端服务是否正常运行。\n\n💡 建议操作：\n• 确保后端服务器正在运行\n• 检查网络连接\n• 查看后端日志获取详细错误信息`);
     } else {
       throw new Error(`✗ 请求失败: ${error.message}`);
     }
