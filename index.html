@@ -748,7 +748,12 @@ async function fetchItems({ apiVersion, lang, signal }) {
   try {
     const res = await fetch(baseUrl, {
       method: 'GET',
-      headers: { 'Accept': 'application/json', 'Language': lang, 'Platform': 'pc' },
+      headers: { 
+        'Accept': 'application/json', 
+        'Language': lang,
+        'Platform': 'pc',
+        'Crossplay': 'true'
+      },
       signal,
     });
     
@@ -763,7 +768,8 @@ async function fetchItems({ apiVersion, lang, signal }) {
       throw new Error(`JSON 解析失败: ${e.message}`);
     }
     
-    const items = json?.payload?.items ?? json?.data ?? json?.items ?? [];
+    // 官方 API v2 返回结构：{ apiVersion, data: [...], error: null }
+    const items = json?.data ?? [];
     if (!Array.isArray(items)) {
       throw new Error(`预期返回数组，但得到: ${typeof items}`);
     }
@@ -773,30 +779,38 @@ async function fetchItems({ apiVersion, lang, signal }) {
     if (e.name === 'AbortError') {
       throw e;
     } else if (e.message.includes('Failed to fetch')) {
-      throw new Error(`网络请求失败 — 请检查网络连接。原始错误: ${e.message}`);
+      throw new Error(`网络请求失败 — 请检查网络连接或 API 服务器状态`);
     } else {
       throw e;
     }
   }
 }
-function normalizeItem(it) {
+function normalizeItem(it, langCode = 'zh-hans') {
+  // WFM API v2 返回结构: i18n.{lang}.item_name
+  const i18n = it?.i18n || {};
+  const en = i18n.en?.item_name || '';
+  const zh = i18n[langCode]?.item_name || '';
+  
   return {
-    id: it.id || it._id || it.uid || '',
-    url_name: it.url_name || it.urlName || it.slug || '',
-    item_name: it.item_name || it.itemName || it.name || it.i18n?.name || '',
-    thumb: it.thumb || it.thumbnail || it.icon || '',
+    id: it?.id || it?._id || '',
+    url_name: it?.url_name || it?.slug || '',
+    en_name: en,
+    zh_name: zh,
+    thumb: it?.thumb || it?.icon || '',
   };
 }
-function mergeBilingual(enList, zhList) {
-  const enMap = new Map(); for (const r of enList) { const n = normalizeItem(r); if (n.url_name) enMap.set(n.url_name, n); }
-  const zhMap = new Map(); for (const r of zhList) { const n = normalizeItem(r); if (n.url_name) zhMap.set(n.url_name, n); }
-  const allKeys = new Set([...enMap.keys(), ...zhMap.keys()]);
+function processBilingual(itemList, langCode = 'zh-hans') {
   const merged = [];
-  for (const k of allKeys) {
-    const en = enMap.get(k); const zh = zhMap.get(k);
-    const slug = k;
-    const thumb = en?.thumb || zh?.thumb || '';
-    merged.push({ url_name: slug, en: en?.item_name || '', zh: zh?.item_name || '', cat: classify(slug, thumb) });
+  for (const item of itemList) {
+    const normalized = normalizeItem(item, langCode);
+    if (normalized.url_name && normalized.en_name && normalized.zh_name) {
+      merged.push({
+        url_name: normalized.url_name,
+        en: normalized.en_name,
+        zh: normalized.zh_name,
+        cat: classify(normalized.url_name, normalized.thumb)
+      });
+    }
   }
   merged.sort((a, b) => (a.zh || a.en).localeCompare(b.zh || b.en, 'zh-Hans-CN'));
   return merged;
@@ -900,40 +914,17 @@ function App() {
     if (phase === 'busy') return;
     setLogs([]); setRows([]); setProgress(0); setPhase('busy');
     const controller = new AbortController(); abortRef.current = controller;
-    log(`API: ${apiVersion.toUpperCase()}`, 'info');
+    log(`API: ${apiVersion.toUpperCase()} · Language: ${zhCode}`, 'info');
 
     try {
-      log('请求英文物品列表 (Language: en) ...', 'info');
+      log('请求物品列表（包含中英文翻译）...', 'info');
       setProgress(20);
-      const enList = await fetchItems({ apiVersion, lang: 'en', signal: controller.signal });
-      log(`✓ 英文返回 ${enList.length} 项`, 'ok');
-      setProgress(55);
+      const itemList = await fetchItems({ apiVersion, lang: zhCode, signal: controller.signal });
+      log(`✓ 返回 ${itemList.length} 项`, 'ok');
+      setProgress(80);
 
-      const zhCandidates = [zhCode, ...ZH_CODES.filter(c => c !== zhCode)];
-      let zhList = []; let lastErr = null;
-      for (const code of zhCandidates) {
-        try {
-          log(`请求中文物品列表 (Language: ${code}) ...`, 'info');
-          const list = await fetchItems({ apiVersion, lang: code, signal: controller.signal });
-          const sampleN = Math.min(20, list.length, enList.length);
-          let differing = 0;
-          for (let i = 0; i < sampleN; i++) {
-            const a = (list[i]?.item_name || list[i]?.name || '');
-            const b = (enList[i]?.item_name || enList[i]?.name || '');
-            if (a && b && a !== b) differing++;
-          }
-          if (differing >= Math.max(1, Math.floor(sampleN / 4))) {
-            zhList = list;
-            log(`✓ 中文返回 ${list.length} 项 (${code})`, 'ok');
-            break;
-          } else log(`代码 ${code} 返回的内容与英文几乎相同，尝试下一个...`, 'warn');
-        } catch (e) { lastErr = e; log(`代码 ${code} 失败: ${e.message}`, 'warn'); }
-      }
-      if (!zhList.length) { if (lastErr) throw lastErr; throw new Error('未能获取到有效的中文数据'); }
-      setProgress(85);
-
-      log('按 url_name 合并并自动分类 ...', 'info');
-      const merged = mergeBilingual(enList, zhList).filter(r => r.zh && r.en);
+      log('处理双语数据并自动分类 ...', 'info');
+      const merged = processBilingual(itemList, zhCode).filter(r => r.zh && r.en);
       setRows(merged);
       setProgress(100);
 
