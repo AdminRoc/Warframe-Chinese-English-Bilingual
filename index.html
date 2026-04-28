@@ -14,7 +14,6 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-/* 完美保留你原有的精美 CSS */
 :root {
   --bg-0: #04050a; --bg-1: #08091a;
   --line: rgba(255,255,255,0.08); --line-2: rgba(255,255,255,0.16);
@@ -129,6 +128,14 @@ p.lead strong { color: #fff; }
 .author-card .from strong { background: linear-gradient(90deg, var(--c-amber), var(--c-pink)); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; }
 .author-card .source { font-size: 11px; color: var(--text-faint); letter-spacing: 0.06em; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; }
 .author-card .source span { color: var(--text-dim); font-weight: 500; }
+
+.author-card .cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--c-cyan) 55%, transparent); background: color-mix(in oklch, var(--c-cyan) 15%, transparent);
+  color: #fff; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; font-family: var(--sans);
+  transition: transform .18s, border-color .18s, background .18s, box-shadow .18s; }
+.author-card .cta:hover { transform: translateY(-2px); border-color: var(--c-cyan); background: color-mix(in oklch, var(--c-cyan) 28%, transparent); box-shadow: 0 8px 24px -8px color-mix(in oklch, var(--c-cyan) 60%, transparent); }
+.author-card .cta .arrow { transition: transform .18s; }
+.author-card .cta:hover .arrow { transform: translateX(3px); }
 
 .card { position: relative; border-radius: 20px; border: 1px solid var(--line); background: rgba(10, 13, 26, 0.55);
   backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
@@ -7868,7 +7875,6 @@ function App() {
 
   const flashToast = useCallback((msg) => { setToast({ id: Date.now(), msg }); setTimeout(() => setToast(null), 2600); }, []);
 
-  // 页面加载时自动从上方的 script 标签中读取并按行组合数据
   useEffect(() => {
     const zhText = document.getElementById('data-zh').textContent.trim().split(/\r?\n/);
     const enText = document.getElementById('data-en').textContent.trim().split(/\r?\n/);
@@ -7877,7 +7883,6 @@ function App() {
     const parsedRows = [];
     
     for (let i = 0; i < maxLen; i++) {
-        // 过滤掉 等特殊标记，保留纯物品名称
         const zh = (zhText[i] || '').replace(/\\s*/g, '').trim();
         const en = (enText[i] || '').replace(/\\s*/g, '').trim();
         if (zh || en) {
@@ -7915,13 +7920,14 @@ function App() {
           <div className="hero-left">
             <span className="eyebrow"><span className="pulse"></span>WARFRAME · MARKETPLACE LEXICON<span className="div"></span>v4 · STATIC DB</span>
             <h1 className="title"><span className="cn">中英对照</span><span className="en">BILINGUAL ITEM ATLAS</span></h1>
-            <p className="lead">基于 <code>warframe.market</code> <strong>V2 API</strong>，已获取所有的可交易物品名称，并可导出 <strong>Excel / CSV / TSV / JSON / Markdown</strong>。</p>
+            <p className="lead">基于 <code>warframe.market</code> <strong>V2 API</strong>，已获取所有的可交易物品名称<br/>可导出 <strong>Excel / CSV / TSV / JSON / Markdown</strong>。</p>
           </div>
           <div className="author-card">
             <div className="author-label">AUTHOR</div>
             <div className="roc">ROC</div>
             <div className="from">来自 <strong>[CSC联盟]</strong></div>
             <div className="source">数据来源：<span>Warframe.Market</span></div>
+            <a className="cta" href="http://roc.war-frame.com" target="_blank" rel="noopener noreferrer">点击获取交易建议 <span className="arrow">→</span></a>
           </div>
         </div>
       </header>
@@ -7962,7 +7968,7 @@ function App() {
                 <table>
                   <thead><tr><th style={{ width: 66 }}># 行号</th><th style={{ width: '45%' }}>中文</th><th>English</th></tr></thead>
                   <tbody>
-                    {visibleRows.slice(0, 800).map((r, i) => (
+                    {visibleRows.map((r, i) => (
                       <tr key={r.id}>
                         <td style={{ color: 'var(--text-faint)', fontFamily: 'var(--mono)', fontSize: 11 }}>{r.id}</td>
                         <td className="zh">{r.zh}</td>
@@ -7972,9 +7978,6 @@ function App() {
                   </tbody>
                 </table>
               )}
-              {visibleRows.length > 800 && (<div style={{ padding: '12px 20px', color: 'var(--text-faint)', fontSize: 11, fontFamily: 'var(--mono)', borderTop: '1px solid var(--line)' }}>
-                表格仅预览前 800 行 — 完整 {visibleRows.length.toLocaleString()} 行会包含在导出文件中
-              </div>)}
             </div>
           </section>
         </>
