@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warframe 物品词典 | 极光版</title>
+    <title>Warframe 物品词典 | 单文件终极版</title>
     <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Noto+Sans+SC:wght@400;700&display=swap');
 
@@ -15,8 +16,8 @@
             --primary: #00f0ff;
             --secondary: #ff0055;
             --tertiary: #b000ff;
-            --glass: rgba(15, 15, 25, 0.6);
-            --border: rgba(0, 240, 255, 0.3);
+            --glass: rgba(15, 15, 25, 0.65);
+            --border: rgba(0, 240, 255, 0.25);
             --text-main: #e0fbfc;
             --text-dim: #8b9bb4;
         }
@@ -33,162 +34,595 @@
             flex-direction: column;
             align-items: center;
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.15), transparent 40%),
-                radial-gradient(circle at 85% 30%, rgba(255, 0, 85, 0.15), transparent 40%);
+                radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.1), transparent 45%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 85, 0.1), transparent 45%);
         }
 
         /* 动态背景光球 */
         .orb {
-            position: fixed;
-            width: 40vw; height: 40vw;
-            border-radius: 50%;
-            filter: blur(100px);
-            z-index: -1;
-            animation: float 20s infinite alternate;
+            position: fixed; width: 45vw; height: 45vw; border-radius: 50%;
+            filter: blur(120px); z-index: -1; animation: float 25s infinite alternate ease-in-out;
         }
-        .orb-1 { top: -10%; left: -10%; background: var(--tertiary); opacity: 0.3; }
-        .orb-2 { bottom: -10%; right: -10%; background: var(--primary); opacity: 0.2; animation-delay: -10s; }
+        .orb-1 { top: -10%; left: -10%; background: var(--tertiary); opacity: 0.25; }
+        .orb-2 { bottom: -10%; right: -10%; background: var(--primary); opacity: 0.15; animation-delay: -10s; }
 
-        @keyframes float {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(10%, 15%); }
-        }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(8%, 12%) scale(1.1); } }
 
-        .container {
-            width: 90%;
-            max-width: 1000px;
-            margin-top: 50px;
-            margin-bottom: 50px;
-        }
+        .container { width: 95%; max-width: 1100px; margin-top: 60px; margin-bottom: 50px; flex: 1; display: flex; flex-direction: column;}
 
+        /* 顶部标题栏 */
         header { text-align: center; margin-bottom: 40px; }
         h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem;
-            font-weight: 800;
+            font-family: 'Orbitron', sans-serif; font-size: 3.2rem; font-weight: 800;
             background: linear-gradient(90deg, var(--primary), #ffffff, var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
-            letter-spacing: 2px;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(0, 240, 255, 0.3); letter-spacing: 3px; margin-bottom: 10px;
         }
-        p.subtitle { color: var(--text-dim); margin-top: 10px; font-size: 1.1rem; letter-spacing: 1px; }
+        p.subtitle { color: var(--text-dim); font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* 搜索框与控制栏 */
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .search-box {
-            flex: 1;
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 18px 25px;
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            background: var(--glass);
+        /* 搜索与工具栏 */
+        .toolbar {
+            display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; align-items: center;
+            background: var(--glass); padding: 25px; border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.4);
             backdrop-filter: blur(20px);
-            color: white;
-            font-size: 1.2rem;
-            outline: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
+        .search-box { flex: 1; min-width: 300px; position: relative; }
+        .search-box input {
+            width: 100%; padding: 18px 25px; border-radius: 12px; border: 1px solid var(--border);
+            background: rgba(0,0,0,0.6); color: white; font-size: 1.2rem; outline: none;
+            transition: all 0.3s ease; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 2px 10px rgba(0,0,0,0.5); }
+        .search-box input::placeholder { color: rgba(255,255,255,0.3); }
 
-        .search-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
-            background: rgba(15, 15, 25, 0.8);
+        .export-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+        button.btn {
+            padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05); color: white; cursor: pointer;
+            transition: all 0.2s ease; font-family: 'Orbitron', 'Noto Sans SC', sans-serif; font-size: 0.95rem; font-weight: bold; letter-spacing: 1px;
         }
-
-        button.btn-update {
-            padding: 0 30px;
-            border-radius: 15px;
-            border: none;
-            background: linear-gradient(45deg, var(--tertiary), var(--secondary));
-            color: white;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
-        }
-        button.btn-update:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.7);
-        }
-        button.btn-update:active { transform: translateY(1px); }
+        button.btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2); }
+        button.btn-excel { background: linear-gradient(45deg, #00b09b, #96c93d); border: none; color: #000; box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2); }
+        button.btn-excel:hover { box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5); background: linear-gradient(45deg, #02c7b0, #a8df45); }
 
         /* 数据表格面板 */
         .table-panel {
-            background: var(--glass);
+            background: var(--glass); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; flex: 1;
             backdrop-filter: blur(25px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
         }
-
         .table-header {
-            display: flex;
-            background: rgba(0,0,0,0.4);
-            padding: 20px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-weight: bold;
-            color: var(--primary);
-            letter-spacing: 2px;
-            font-size: 1.1rem;
+            display: flex; background: rgba(0,0,0,0.7); padding: 20px 30px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2); font-weight: bold; color: var(--primary); 
+            letter-spacing: 2px; font-size: 1.1rem;
         }
-
-        .table-body {
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-
-        /* 自定义滚动条 */
-        .table-body::-webkit-scrollbar { width: 8px; }
-        .table-body::-webkit-scrollbar-track { background: transparent; }
-        .table-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-        .row {
-            display: flex;
-            padding: 16px 30px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: background 0.2s;
-        }
-        .row:hover { background: rgba(0, 240, 255, 0.08); }
-
-        .col { flex: 1; }
-        .col.zh { font-weight: 700; font-size: 1.1rem; }
-        .col.en { color: var(--text-dim); font-family: 'Orbitron', sans-serif; }
-
-        .status-msg { text-align: center; padding: 50px; color: var(--text-dim); font-size: 1.2rem; }
+        .table-body { max-height: 65vh; overflow-y: auto; scroll-behavior: smooth; }
         
-        .loading-spinner {
-            display: inline-block;
-            width: 40px; height: 40px;
-            border: 4px solid rgba(255,255,255,0.1);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* 自定义滚动条 */
+        .table-body::-webkit-scrollbar { width: 10px; }
+        .table-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .table-body::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 5px; }
+        .table-body::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.6); }
+        
+        .row { display: flex; padding: 16px 30px; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s; align-items: center;}
+        .row:hover { background: rgba(0, 240, 255, 0.08); }
+        .col-id { width: 70px; color: var(--secondary); font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold; }
+        .col-zh { flex: 1; font-weight: 700; font-size: 1.15rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .col-en { flex: 1; color: var(--text-dim); font-family: 'Orbitron', sans-serif; text-align: right; font-size: 1.05rem;}
 
-        footer { margin-top: auto; padding: 20px; text-align: center; color: var(--text-dim); font-size: 0.9rem; }
+        .status-msg { text-align: center; padding: 60px; color: var(--text-dim); font-size: 1.2rem; letter-spacing: 1px; }
+        .data-count { text-align: right; padding: 15px 30px; background: rgba(0,0,0,0.5); font-family: 'Orbitron', sans-serif; color: var(--text-faint); font-size: 0.9rem;}
+
+        footer { padding: 30px; text-align: center; color: var(--text-dim); font-size: 0.9rem; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto; background: rgba(0,0,0,0.6); letter-spacing: 1px;}
         footer span { color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
+
+    English" 的格式换行追加在下面即可 -->
+    <script id="data-source" type="text/plain">
+保障·锡斯特双枪 --> Secura Dual Cestra
+匍匐靶心 --> Creeping Bullseye
+异融 Alad V 刺杀 （钥匙） --> Mutalist Alad V Assassinate (Key)
+辐射缴械 --> Irradiating Disarm
+反物质吸收 --> Antimatter Absorb
+赋能·壁垒 --> Arcane Barrier
+赋能·冰冷 --> Arcane Ice
+终极·螺钉步枪 --> Telos Boltor
+Frost Prime 一套 --> Frost Prime Set
+触媒连动 --> Catalyzer Link
+定位辅助 --> Targeting Subsystem
+斯特朗·亡魂 枪机 --> Strun Wraith Receiver
+构造裂缝 --> Tectonic Fracture
+Mantis 一套 --> Mantis Set
+酸性弹药 --> Acid Shells
+夜巡燃烧弹 --> Nightwatch Napalm
+类星钻体 --> Quasar Drill
+彗星爆发 --> Comet Blast
+星云钻孔 --> Nebula Bore
+死亡使徒 刀刃 --> Kaszas Blade
+极速电磁步枪 枪机 --> Velocitus Receiver
+巨浪 枪管 --> Fluctus Barrel
+巨浪 弓臂 --> Fluctus Limbs
+巨浪 枪托 --> Fluctus Stock
+什长双枪 枪管 --> Decurion Barrel
+Hydroid Prime 一套 --> Hydroid Prime Set
+净化奥罗金 --> Cleanse Orokin
+Kappa 信标 --> Kappa Beacon
+星形绯红石 --> Star Crimzian
+正直·打击 --> Virtuos Strike
+猎人 肾上腺素 --> Hunter Adrenaline
+蝰蛇·亡魂 --> Viper Wraith
+奥罗金荒废广场场景 --> Orokin Derelict Plaza Scene
+Grineer 造船厂场景 --> Grineer Shipyards Manufactory Scene
+感染舰桥场景 --> Infested Ship Bridge Scene
+月球苗圃场景 --> Lua Nursery Scene
+Corpus 集气城市管道场景 --> Corpus Gas City Conduit Scene
+Grineer 驻扎地反应炉场景 --> Grineer Settlement Reactor Scene
+Corpus 冰封星球残骸场景 --> Corpus Ice Planet Wreckage Scene
+夜灵 Madurai 晶体 --> Eidolon Madurai Lens
+夜灵 Vazarin 晶体 --> Eidolon Vazarin Lens
+夜灵 Unairu 晶体 --> Eidolon Unairu Lens
+Zephyr Prime 机体 蓝图 --> Zephyr Prime Chassis Blueprint
+Mycona 殖民地场景 --> Mycona Colony Scene
+和平·高飞 --> Pax Soar
+救赎者 Prime 刀刃 --> Redeemer Prime Blade
+觉醒双枪 Prime 枪机 --> Akjagara Prime Receiver
+组合枪裂罅 Mod （尚未揭开） --> Kitgun Riven Mod (Veiled)
+光谱虹吸 --> Spectrosiphon
+恶狼战锤锤头 --> Wolf Sledge Head
+恶狼战锤 一套 --> Wolf Sledge Set
+奥布山谷场景 --> Orb Vallis Scene
+诸葛连弩 Prime 弓身 --> Zhuge Prime Grip
+寒冰之力 --> Freeze Force
+旋风虎击 --> Swirling Tiger
+随机应变 --> Quick Thinking
+蛟龙 Prime 蓝图 --> Wyrm Prime Blueprint
+簧压刀刃 --> Spring-Loaded Blade
+动力转移 --> Kinetic Diversion
+奋力一掷 --> Power Throw
+宿命真理 --> Fateful Truth
+致命火力 --> Malignant Force
+卓越防御 --> Superior Defenses
+能量转化 --> Energy Inversion
+破碎正义 --> Shattering Justice
+爆发装填 --> Fast Hands
+极地弹仓 --> Polar Magazine
+步枪增幅 --> Rifle Amp
+残余 --> Spare Parts
+有去无回 --> No Return
+汽化 --> Vaporize
+恶性扩散 --> Vicious Spread
+敌人感应 --> Enemy Sense
+盲怒 --> Blind Rage
+步枪弹药转换 --> Rifle Ammo Mutation
+凯旋将军·破坏者 枪管 --> Imperator Vandal Barrel
+欧特鲁斯 Prime 刀刃 --> Orthos Prime Blade
+Loki Prime 系统 蓝图 --> Loki Prime Systems Blueprint
+Naramon 晶体 --> Naramon Lens
+协力窜升 --> Coaction Drift
+通晓霰弹枪 --> Shotgun Savvy
+爆裂刀刃 --> Volcanic Edge
+陨蜓 Prime 外甲 蓝图 --> Odonata Prime Harness Blueprint
+回气再起 --> Secondary Wind
+陨蜓 Prime 系统 蓝图 --> Odonata Prime Systems Blueprint
+致命一击 --> Point Strike
+上升打击 --> Soaring Strike
+强力猛击 --> Pummel
+极速电磁步枪 枪托 --> Velocitus Stock
+拉斯波恩 握柄 --> Rathbone Handle
+拉斯波恩 锤头 --> Rathbone Head
+拉特昂·亡魂 枪管 --> Latron Wraith Barrel
+火焰装填 --> Heated Charge
+系统重划 --> System Reroute
+蛇发女妖·亡魂 枪机 --> Gorgon Wraith Receiver
+精算射击 --> Calculated Shot
+活力 --> Vigor
+飞扬 Prime 镖袋 --> Hikou Prime Pouch
+收割者 Prime 蓝图 --> Reaper Prime Blueprint
+震击 秘奥头盔 --> Arcane Thrak Helmet
+抵近射击 Prime --> Primed Point Blank
+三幂之力 --> Power Of Three
+Rhino Prime 头部神经光元 蓝图 --> Rhino Prime Neuroptics Blueprint
+缴械纯净 --> Disarming Purity
+蛇发女妖·亡魂 枪托 --> Gorgon Wraith Stock
+布里斯提卡 Prime 弓弦 --> Ballistica Prime String
+双蛇牙突 --> Crossing Snakes
+返老还童 --> Rejuvenation
+挖掘 --> Dig
+粉碎器 --> Shredder
+无尽苦难 --> Continuous Misery
+瓦斯托 Prime 一套 --> Vasto Prime Set
+阿瓦隆 秘奥头盔 --> Arcane Avalon Helmet
+铝热焊弹 --> Thermite Rounds
+通量 秘奥头盔 --> Arcane Flux Helmet
+终极·螺钉双枪 --> Telos Akbolto
+预言 秘奥头盔 --> Arcane Aura Helmet
+圣洁·雷爆信镖 --> Sancti Castanas
+裂缝打击 --> Rift Strike
+火神闪击 --> Vulcan Blitz
+策略 秘奥头盔 --> Arcane Gambit Helmet
+氯毒 秘奥头盔 --> Arcane Chlora Helmet
+机敏 秘奥头盔 --> Arcane Esprit Helmet
+赋能·诡计 --> Arcane Trickery
+Oberon Prime 头部神经光元 蓝图 --> Oberon Prime Neuroptics Blueprint
+Volt Prime 头部神经光元 蓝图 --> Volt Prime Neuroptics Blueprint
+凤凰 秘奥头盔 --> Arcane Phoenix Helmet
+布里斯提卡 Prime 下弓臂 --> Ballistica Prime Lower Limb
+Volt Prime 机体 蓝图 --> Volt Prime Chassis Blueprint
+女侯爵翠萤石 --> Marquise Veridos
+返响 秘奥头盔 --> Arcane Reverb Helmet
+爆炸戏法 --> Explosive Legerdemain
+毁灭奥罗金 --> Smite Orokin
+铁杉 秘奥头盔 --> Arcane Hemlock Helmet
+汲能榨取 --> Vampire Leech
+诸葛连弩 Prime 蓝图 --> Zhuge Prime Blueprint
+降灵追猎者 Prime 链条 --> Ninkondi Prime Chain
+诸葛连弩 Prime 枪机 --> Zhuge Prime Receiver
+诸葛连弩 Prime 一套 --> Zhuge Prime Set
+Wukong Prime 头部神经光元 蓝图 --> Wukong Prime Neuroptics Blueprint
+毁灭扩展 --> Ruinous Extension
+野蛮压制 --> Savagery
+手枪精通 --> Pistol Gambit
+毁坏微光 --> Gleaming Blight
+Ember Prime 头部神经光元 蓝图 --> Ember Prime Neuroptics Blueprint
+恒久折磨 --> Lingering Torment
+重锤射击 --> Hammer Shot
+霰弹枪弹药转换 Prime --> Primed Shotgun Ammo Mutation
+赋能·迅速 --> Arcane Velocity
+Nyx Prime 蓝图 --> Nyx Prime Blueprint
+德拉·破坏者 枪托 --> Dera Vandal Stock
+卡拉克·亡魂 蓝图 --> Karak Wraith Blueprint
+Nyx Prime 系统 蓝图 --> Nyx Prime Systems Blueprint
+摆荡钩索 --> Swing Line
+双短柄战镰 Prime 一套 --> Dual Kamas Prime Set
+精准爆发 --> Measured Burst
+护卫传送 --> Safeguard Switch
+棱晶 阴影 --> Prisma Shade
+集气城市大厅场景 --> Gas City Lobby Scene
+过度延展 --> Overextended
+保护 --> Protect
+全蚀 --> Total Eclipse
+脉冲 秘奥头盔 --> Arcane Pulse Helmet
+私法 追踪 --> Vigilante Pursuit
+净化斩 --> Purging Slash
+Mag 高斯 秘奥头盔 --> Arcane Mag Gauss Helmet
+远古融合核心 --> Ancient Fusion Core
+弗拉克斯·亡魂 右拳套 --> Furax Wraith Right Gauntlet
+螺钻打击 --> Auger Strike
+Nyx Prime 头部神经光元 蓝图 --> Nyx Prime Neuroptics Blueprint
+Rhino Prime 蓝图 --> Rhino Prime Blueprint
+稳定枪手 --> Steady Hands
+猛虎 Prime 枪机 --> Tigris Prime Receiver
+能量转换 --> Energy Conversion
+赋能·抗毒 --> Arcane Resistance
+致命洪流 --> Lethal Torrent
+战争之剑 刀片 --> War Blade
+弱点侦测 --> Detect Vulnerability
+元素沙暴 --> Elemental Sandstorm
+钢铁纤维 --> Steel Fiber
+扩充弹匣 --> Magazine Extension
+内置炸药 --> Concealed Explosives
+破灭 Prime --> Primed Ravage
+耗竭装填 --> Depleted Reload
+赫利俄斯 Prime 外壳 --> Helios Prime Carapace
+蛟龙 Prime 系统 --> Wyrm Prime Systems
+Trinity Prime 头部神经光元 蓝图 --> Trinity Prime Neuroptics Blueprint
+精神狂怒 --> Mind Freak
+狼牙 Prime 握柄 --> Fang Prime Handle
+简化 --> Streamline
+隔热 --> Insulation
+增压弹匣 --> Pressurized Magazine
+伏击光子 --> Ambush Optics
+Nyx Prime 机体 蓝图 --> Nyx Prime Chassis Blueprint
+电容 --> Capacitance
+压缩弹药 --> Shell Compression
+Loki Prime 机体 蓝图 --> Loki Prime Chassis Blueprint
+枪膛 --> Bore
+信号闪光 --> Signal Flare
+电光冲刺 --> Lightning Dash
+Mag Prime 机体 蓝图 --> Mag Prime Chassis Blueprint
+狙击特昂·破坏者 一套 --> Snipetron Vandal Set
+机动冲撞 --> Battering Maneuver
+穿刺步伐 --> Piercing Step
+狂热火球 --> Fireball Frenzy
+永恒纯净 --> Lasting Purity
+能量虹吸 --> Energy Siphon
+隐密追踪 --> Stalk
+弹匣增幅 --> Magazine Warp
+渗透 --> Infiltrate
+毒蛇螺旋 --> Coiling Viper
+压迫点 Prime --> Primed Pressure Point
+寒流来袭 --> Cold Snap
+地狱弹膛 --> Hell's Chamber
+积存毁坏 --> Stockpiled Blight
+海波斯库拉对剑 Prime 握柄 --> Nami Skyla Prime Handle
+破碎之风 --> Fracturing Wind
+猛烈爆发 --> Fulmination
+弹鼓 --> Ammo Drum
+至尊浪人 --> Sovereign Outcast
+角斗士 威猛 --> Gladiator Might
+震地冲击 --> Heavy Impact
+雷火 --> Thunderbolt
+生命之池 --> Pool Of Life
+熵数爆发 --> Entropy Burst
+致命诱惑 --> Fatal Attraction
+震撼冲拳 --> Seismic Palm
+压迫点 --> Pressure Point
+弹药改良 --> Modified Munitions
+天赋 --> Natural Talent
+箭型弹头 --> Flechette
+飞光荒疫 --> Shimmering Blight
+正义刀锋 --> Justice Blades
+败兴虐杀 --> Buzz Kill
+食人鱼 Prime 蓝图 --> Pyrana Prime Blueprint
+食人鱼 Prime 枪机 --> Pyrana Prime Receiver
+食人鱼 Prime 枪管 --> Pyrana Prime Barrel
+技巧之剑 Prime 一套 --> Destreza Prime Set
+驱逐 Grineer Prime --> Primed Expel Grineer
+驱逐 Corpus Prime --> Primed Expel Corpus
+驱逐 Infested Prime --> Primed Expel Infested
+驱逐奥罗金 Prime --> Primed Expel Orokin
+震动之拳 --> Quaking Hand
+火焰腺体 --> Flame Gland
+分裂之刃 --> Dividing Blades
+光滑翡斯敏石 --> Smooth Phasmin
+赋能·生机 --> Arcane Pulse
+骤然正义 --> Sudden Justice
+急进猛突 --> Blood Rush
+破片射击 --> Shrapnel Shot
+冷却液外泄 --> Coolant Leak
+火绫复苏 --> Ward Recovery
+火焰装填 Prime --> Primed Heated Charge
+中子星爆 --> Neutron Star
+头颅射击 --> Skull Shots
+Loki Prime 头部神经光元 蓝图 --> Loki Prime Neuroptics Blueprint
+私法 热诚 --> Vigilante Fervor
+甲龙双拳 Prime 刀刃 --> Ankyros Prime Blade
+甲龙双拳 Prime 拳套 --> Ankyros Prime Gauntlet
+玻之武杖 Prime 蓝图 --> Bo Prime Blueprint
+席瓦 & 神盾 Prime 护手 --> Silva & Aegis Prime Guard
+蚀骨寒霜 --> Vicious Frost
+锯刃 --> Jagged Edge
+护盾瓦解 --> Shield Disruption
+魔导·活力 --> Magus Vigor
+霰弹弹幕 --> Shotgun Barrage
+诈欺 秘奥头盔 --> Arcane Swindle Helmet
+角斗士 钳制 --> Gladiator Vice
+经络 秘奥头盔 --> Arcane Meridian Helmet
+传说核心 --> Legendary Fusion Core
+猛虎 Prime 枪托 --> Tigris Prime Stock
+旋压刺针 --> Spinning Needle
+狙击特昂·破坏者 枪托 --> Snipetron Vandal Stock
+野火 --> Wildfire
+灭亡 Grineer --> Bane Of Grineer
+Scimitar 飞航系统 蓝图 --> Scimitar Avionics Blueprint
+反射防御 --> Reflex Guard
+永恒之护 --> Everlasting Ward
+Ash Prime 头部神经光元 蓝图 --> Ash Prime Neuroptics Blueprint
+电流震击 --> Jolt
+守望者 Prime 枪托 --> Vectis Prime Stock
+慑人神速 --> Stunning Speed
+持久力 Prime --> Primed Continuity
+玻之武杖 Prime 握柄 --> Bo Prime Handle
+连续冲击 --> Crash Course
+再生分流 --> Vital Systems Bypass
+奇异点 --> Singularity
+杂技装甲 --> Armored Acrobatics
+致命动量 --> Lethal Momentum
+灭亡 Infested Prime --> Primed Bane Of Infested
+灭亡 Corpus Prime --> Primed Bane Of Corpus
+搬运者 Prime 蓝图 --> Carrier Prime Blueprint
+狡狐诈面 --> Vulpine Mask
+灭亡 Grineer Prime --> Primed Bane Of Grineer
+守望者 Prime 枪管 --> Vectis Prime Barrel
+战术上膛 --> Tactical Pump
+灭神 秘奥头盔 --> Arcane Menticide Helmet
+极光 秘奥头盔 --> Arcane Aurora Helmet
+月神 Prime 蓝图 --> Soma Prime Blueprint
+释放 --> Unleashed
+瓦斯托 Prime 枪管 --> Vasto Prime Barrel
+合音 秘奥头盔 --> Arcane Chorus Helmet
+瓦斯托 Prime 蓝图 --> Vasto Prime Blueprint
+飞逝熵数 --> Entropy Flight
+Saryn Prime 一套 --> Saryn Prime Set
+纵腾天际 --> Poppin' Vert
+魔导·修复 --> Magus Repair
+魔导·干扰 --> Magus Glitch
+完美平衡 --> Perfect Balance
+菌株 吸收 --> Strain Consume
+Zaw 裂罅 Mod （尚未揭开） --> Zaw Riven Mod (Veiled)
+恶狼战锤 蓝图 --> Wolf Sledge Blueprint
+魔导·超载 --> Magus Overload
+分子裂变 --> Molecular Fission
+恶狼战锤马达 --> Wolf Sledge Motor
+猛烈发狂 --> Wild Frenzy
+凝固汽油榴弹 --> Napalm Grenades
+提佩多 Prime 握柄 --> Tipedo Prime Handle
+斯特拉迪瓦 Prime 一套 --> Stradavar Prime Set
+Equinox Prime 蓝图 --> Equinox Prime Blueprint
+野马 Prime 枪管 --> Bronco Prime Barrel
+战争之剑 握柄 --> War Hilt
+Nova Prime 系统 蓝图 --> Nova Prime Systems Blueprint
+Frost Prime 蓝图 --> Frost Prime Blueprint
+野马 Prime 蓝图 --> Bronco Prime Blueprint
+星界微光 --> Astral Twilight
+速射 --> Snap Shot
+伯斯顿 Prime 枪机 --> Burston Prime Receiver
+狼牙 Prime 刀刃 --> Fang Prime Blade
+Vauban Prime 头部神经光元 蓝图 --> Vauban Prime Neuroptics Blueprint
+飞扬 Prime 星镖 --> Hikou Prime Stars
+入侵者 --> Intruder
+棱晶·安格斯壮 --> Prisma Angstrum
+菲德菈 枪托 --> Phaedra Stock
+灼痕焦点 --> Scorch
+熵数尖钉 --> Entropy Spike
+终焉风暴 --> Eleventh Storm
+Nova Prime 头部神经光元 蓝图 --> Nova Prime Neuroptics Blueprint
+反物质地雷 --> Antimatter Mine
+Nova Prime 机体 蓝图 --> Nova Prime Chassis Blueprint
+棱镜护卫 --> Prism Guard
+戏法增幅 --> Trick Mag
+Nova Prime 蓝图 --> Nova Prime Blueprint
+虚伪连结 --> Deceptive Bond
+Frost Prime 头部神经光元 蓝图 --> Frost Prime Neuroptics Blueprint
+飑风 秘奥头盔 --> Arcane Squall Helmet
+精算蓄能 --> Calculated Redirection
+充电弹头 --> Charged Shell
+净化 Corpus --> Cleanse Corpus
+炽燃钢铁 --> Searing Steel
+加速充能 --> Accelerated Deflection
+巨林冲击 --> Clashing Forest
+原始暴怒 --> Primal Rage
+天圣践踏 --> Celestial Stomp
+保障·潘塔 --> Secura Penta
+剃刀射击 --> Razor Shot
+缓动惊骇 --> Creeping Terrify
+Trinity Prime 蓝图 --> Trinity Prime Blueprint
+冷面狂怒 --> Grim Fury
+阿耶檀识 Orta 塑像 --> Ayatan Orta Sculpture
+能量导引 --> Energy Channel
+神圣清算 --> Hallowed Reckoning
+痉挛 --> Convulsion
+赋能·狂怒 --> Arcane Fury
+极速复元 --> Rapid Resilience
+瘟疫手枪 --> Pistol Pestilence
+非晶变压器 Prime --> Primed Morphic Transformer
+虚弱动能 --> Frail Momentum
+病原弹头 --> Pathogen Rounds
+赋能·神盾 --> Arcane Aegis
+瞬间冲击 --> Sudden Impact
+赋能·结果 --> Arcane Consequence
+强化刀片 --> Tempered Blade
+毁灭 Corpus --> Smite Corpus
+赋能·充沛 --> Arcane Energize
+尖牙连射 --> Fanged Fusillade
+角斗士 决心 --> Gladiator Resolve
+幽灵 --> Ghost
+白霜弹头 --> Rime Rounds
+金工火神·亡魂 --> Vulkar Wraith
+阿耶檀识 Piv 塑像 --> Ayatan Piv Sculpture
+不绝护甲 --> Negation Armor
+雷筒 --> Blunderbuss
+席芭莉丝 Prime 枪管 --> Sybaris Prime Barrel
+半人马 盾 --> Centaur Aegis
+中枢苏达强化Mod --> Cephalon Suda Augment Mod
+Banshee Prime 机体 蓝图 --> Banshee Prime Chassis Blueprint
+急冻控场 --> Chilling Grasp
+Wukong Prime 机体 蓝图 --> Wukong Prime Chassis Blueprint
+炽烈坚刃 --> Blazing Steel
+过热射击 --> Fired Up
+云暴山碎 --> Shattering Storm
+恐惧感知 --> Fear Sense
+刀锋弹舞 --> Bullet Dance
+双子蝰蛇·亡魂 蓝图 --> Twin Vipers Wraith Blueprint
+分裂膛室 --> Split Chamber
+北风 --> North Wind
+霰弹枪弹药搜集者 --> Shotgun Scavenger
+枢议·咖玛腕甲枪 --> Synoid Gammacor
+赫利俄斯 Prime 一套 --> Helios Prime Set
+绯红·布里斯提卡 --> Rakta Ballistica
+Hydroid Prime 头部神经光元 蓝图 --> Hydroid Prime Neuroptics Blueprint
+贪婪吸引 --> Greedy Pull
+席瓦 & 神盾 Prime 一套 --> Silva & Aegis Prime Set
+守护光罩 --> Sanctuary
+系绳榴弹 --> Tether Grenades
+飞行员 --> Aviator
+猎鹰俯击 --> Swooping Falcon
+百折不挠 --> Constitution
+惩击洗礼 --> Smite Infusion
+喀婆萨 Prime 库狛项圈 一套 --> Kavasa Prime Kubrow Collar Set
+拉特昂 Prime 一套 --> Latron Prime Set
+雷克斯 Prime 一套 --> Lex Prime Set
+陨蜓 Prime 一套 --> Odonata Prime Set
+恒稳枪杆 --> Gun Glide
+盖霜跳马 --> Rime Vault
+战无不克 --> Vanquished Prey
+电流长矛 --> Voltaic Lance
+灵快节拍 --> Deft Tempo
+双重连击 --> Double Tap
+搏命反扑 --> Final Act
+最终一击 --> Final Tap
+液压枪膛 --> Hydraulic Chamber
+液压弹药 --> Hydraulic Gauge
+松弛枪盖 --> Loose Hatch
+狭窄枪膛 --> Narrow Barrel
+斯特朗·亡魂 枪管 --> Strun Wraith Barrel
+夜灵 Zenurik 晶体 --> Eidolon Zenurik Lens
+技巧之剑 Prime 握柄 --> Destreza Prime Handle
+耐久强化 --> Enhanced Durability
+切换增幅 --> Holster Amp
+赋能·速攻 --> Arcane Strike
+凶恶延伸 --> Sinister Reach
+守望者 Prime 一套 --> Vectis Prime Set
+雕斩螳螂 --> Carving Mantis
+领袖 Prime --> Primed Pack Leader
+赋能·消磁 --> Arcane Nullifier
+Rhino Prime 一套 --> Rhino Prime Set
+暗杀者 Prime 一套 --> Sicarus Prime Set
+精准火枪 --> Grinloked
+赋能·胜利 --> Arcane Victory
+紧凑步伐 --> Hastened Steps
+埋伏射击 --> Lie In Wait
+螺钉步枪 Prime 枪机 --> Boltor Prime Receiver
+螺钉步枪 Prime 枪托 --> Boltor Prime Stock
+暗夜追迹者 --> Night Stalker
+枢议·赫利俄光锤 --> Synoid Heliocor
+鞘翅 系统 --> Elytron Systems
+钢铁防线强化Mod --> Steel Meridian Augment Mod
+暗影收割 --> Shadow Harvest
+银白天灾 --> Argent Scourge
+猛虎 Prime 枪管 --> Tigris Prime Barrel
+弹匣置换 --> Eject Magazine
+应急备案 --> Plan B
+炙热黄蜂 --> Burning Wasp
+尖锐子弹 --> Sharpened Bullets
+撕裂弹头 --> Ripper Rounds
+月神 Prime 枪机 --> Soma Prime Receiver
+收割螺旋 --> Reaping Spiral
+月神 Prime 枪托 --> Soma Prime Stock
+锐利刀刃 --> Sharpened Blade
+滑行扫射 --> Strafing Slide
+Scimitar 一套 --> Scimitar Set
+残盾转换 --> Surplus Diverters
+灾变连连 --> Cataclysmic Continuum
+布莱顿 Prime 一套 --> Braton Prime Set
+残酷打击 --> Relentless Assault
+席瓦 & 神盾 Prime 握柄 --> Silva & Aegis Prime Hilt
+精准弹跳 --> Calculated Spring
+彗星弹头 --> Comet Rounds
+Hydroid Prime 机体 蓝图 --> Hydroid Prime Chassis Blueprint
+雷克斯双枪 Prime 蓝图 --> Aklex Prime Blueprint
+雷克斯双枪 Prime 一套 --> Aklex Prime Set
+布里斯提卡 Prime 蓝图 --> Ballistica Prime Blueprint
+秋风落叶 --> Tranquil Cleave
+链接生命力 --> Link Vitality
+领袖 --> Pack Leader
+幸存生灵 --> Soul Survivor
+分子转化 --> Molecular Conversion
+重击者 --> Thumper
+冲刺 --> Rush
+污染弹匣 --> Infected Clip
+净化 Infested --> Cleanse Infested
+烈焰 --> Blaze
+吸取 --> Vacuum
+能量产生器 --> Energy Generator
+深红飓风 --> Scarlet Hurricane
+凶途恶径 --> Vicious Approach
+冰冻双颚 --> Frost Jaw
+电击项圈 --> Shock Collar
+收尾痛击 --> Thrash Landing
+跃动 冲击 --> Motus Impact
+空飞 俯瞰 --> Aero Vantage
+跃动 设局 --> Motus Setup
+狂风猛踢 --> Gale Kick
+跃动 信号 --> Motus Signal
+12 号甲板场景 --> Deck 12 Scene
+    </script>
+
     <div id="root"></div>
 
     <script type="text/babel">
@@ -197,48 +631,34 @@
         function App() {
             const [items, setItems] = useState([]);
             const [search, setSearch] = useState('');
-            const [loading, setLoading] = useState(true);
-            const [updating, setUpdating] = useState(false);
-            const [error, setError] = useState('');
 
-            // 初次加载本地数据
-            const loadData = async () => {
-                setLoading(true);
-                setError('');
-                try {
-                    const res = await fetch('http://localhost:3000/api/items');
-                    if (!res.ok) throw new Error('网络响应异常');
-                    const data = await res.json();
-                    setItems(data);
-                } catch (err) {
-                    setError('无法连接到后端服务器，请确保服务器正在运行 (node server.js)。');
-                } finally {
-                    setLoading(false);
-                }
-            };
+            // 初始化：解析内嵌的文本数据
+            useEffect(() => {
+                const rawText = document.getElementById('data-source').textContent;
+                const lines = rawText.split('\n');
+                
+                const parsedItems = [];
+                let lineId = 1;
 
-            useEffect(() => { loadData(); }, []);
-
-            // 触发后端强制更新
-            const handleUpdate = async () => {
-                if(updating) return;
-                setUpdating(true);
-                try {
-                    const res = await fetch('http://localhost:3000/api/update', { method: 'POST' });
-                    if(res.ok) {
-                        alert('服务器数据更新成功！');
-                        loadData(); // 重新加载数据
-                    } else {
-                        alert('更新失败，请重试。');
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return;
+                    
+                    // 解析 "中文 --> English" 格式
+                    const parts = trimmed.split('-->');
+                    if (parts.length === 2) {
+                        parsedItems.push({
+                            id: lineId++,
+                            zh: parts[0].trim(),
+                            en: parts[1].trim()
+                        });
                     }
-                } catch (err) {
-                    alert('无法连接服务器。');
-                } finally {
-                    setUpdating(false);
-                }
-            };
+                });
 
-            // 实时搜索过滤
+                setItems(parsedItems);
+            }, []);
+
+            // 实时检索
             const filteredItems = useMemo(() => {
                 if (!search.trim()) return items;
                 const q = search.toLowerCase();
@@ -248,53 +668,95 @@
                 );
             }, [items, search]);
 
+            // 为了保证性能，即使匹配出数千条，渲染时最多展示前 500 条
+            // (导出时依然会导出所有过滤后的条目)
+            const displayItems = filteredItems.slice(0, 500);
+
+            /* =============== 多格式导出工具链 =============== */
+            const downloadBlob = (filename, content, mimeType) => {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a); URL.revokeObjectURL(url);
+            };
+
+            const exportCSV = () => {
+                const csv = '\ufeff' + ['序号,中文,English', ...filteredItems.map(r => `${r.id},"${r.zh.replace(/"/g, '""')}","${r.en.replace(/"/g, '""')}"`)].join('\r\n');
+                downloadBlob('warframe_lexicon.csv', csv, 'text/csv;charset=utf-8;');
+            };
+
+            const exportTSV = () => {
+                const tsv = '\ufeff' + ['序号\t中文\tEnglish', ...filteredItems.map(r => `${r.id}\t${r.zh}\t${r.en}`)].join('\r\n');
+                downloadBlob('warframe_lexicon.tsv', tsv, 'text/tab-separated-values;charset=utf-8;');
+            };
+
+            const exportJSON = () => {
+                const json = JSON.stringify(filteredItems.map(r => ({ 序号: r.id, 中文: r.zh, English: r.en })), null, 2);
+                downloadBlob('warframe_lexicon.json', json, 'application/json');
+            };
+
+            const exportMD = () => {
+                const md = ['| 序号 | 中文 | English |', '| --- | --- | --- |', ...filteredItems.map(r => `| ${r.id} | ${r.zh} | ${r.en} |`)].join('\n');
+                downloadBlob('warframe_lexicon.md', md, 'text/markdown');
+            };
+
+            const exportExcel = () => {
+                const data = [['序号', '中文名称', 'English Name'], ...filteredItems.map(r => [r.id, r.zh, r.en])];
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                ws['!cols'] = [{ wch: 8 }, { wch: 40 }, { wch: 50 }]; 
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Warframe Lexicon');
+                XLSX.writeFile(wb, 'warframe_lexicon.xlsx');
+            };
+
             return (
                 <div className="container">
                     <header>
                         <h1>NEXUS LEXICON</h1>
-                        <p className="subtitle">Warframe.Market 纯净双语数据中枢</p>
+                        <p className="subtitle">Warframe 纯静态内嵌双语检索系统</p>
                     </header>
 
-                    <div className="controls">
+                    <div className="toolbar">
                         <div className="search-box">
                             <input 
                                 type="text" 
-                                placeholder="输入中文或英文检索物品..." 
+                                placeholder="输入中文或英文关键字极速检索..." 
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
-                        <button className="btn-update" onClick={handleUpdate}>
-                            {updating ? '🔄 同步中...' : '✦ 强制更新数据'}
-                        </button>
+                        <div className="export-btns">
+                            <button className="btn btn-excel" onClick={exportExcel}>📊 导出 Excel</button>
+                            <button className="btn" onClick={exportCSV}>CSV</button>
+                            <button className="btn" onClick={exportTSV}>TSV</button>
+                            <button className="btn" onClick={exportJSON}>JSON</button>
+                            <button className="btn" onClick={exportMD}>Markdown</button>
+                        </div>
                     </div>
 
                     <div className="table-panel">
                         <div className="table-header">
-                            <div className="col">中 文 名 称</div>
-                            <div className="col" style={{textAlign:'right'}}>ENGLISH NAME</div>
+                            <div className="col-id">#</div>
+                            <div className="col-zh">中 文 名 称</div>
+                            <div className="col-en">ENGLISH NAME</div>
                         </div>
-
                         <div className="table-body">
-                            {loading && (
-                                <div className="status-msg">
-                                    <div className="loading-spinner"></div>
-                                    <div>正在建立神经链接并读取本地数据...</div>
-                                </div>
+                            {displayItems.length === 0 ? (
+                                <div className="status-msg">🕸️ 虚空之中一无所获。</div>
+                            ) : (
+                                displayItems.map((item) => (
+                                    <div className="row" key={item.id}>
+                                        <div className="col-id">{String(item.id).padStart(3, '0')}</div>
+                                        <div className="col-zh">{item.zh}</div>
+                                        <div className="col-en">{item.en}</div>
+                                    </div>
+                                ))
                             )}
-
-                            {error && <div className="status-msg" style={{color: 'var(--secondary)'}}>{error}</div>}
-
-                            {!loading && !error && filteredItems.length === 0 && (
-                                <div className="status-msg">🕸️ 虚空之中一无所获。尝试其他关键字？</div>
-                            )}
-
-                            {!loading && !error && filteredItems.map((item, idx) => (
-                                <div className="row" key={idx}>
-                                    <div className="col zh">{item.zh}</div>
-                                    <div className="col en" style={{textAlign:'right'}}>{item.en}</div>
-                                </div>
-                            ))}
+                        </div>
+                        <div className="data-count">
+                            展示 {displayItems.length} 条 / 匹配 {filteredItems.length} 条 / 共 {items.length} 条数据
                         </div>
                     </div>
                 </div>
@@ -302,14 +764,11 @@
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(
-            <>
-                <App />
-                <footer>
-                    Project by <span>ROC</span> | Data from <span>Warframe.Market API V2</span>
-                </footer>
-            </>
-        );
+        root.render(<App />);
     </script>
+    
+    <footer>
+        Project Mod by <span>ROC</span> | Fully Embedded Static Version
+    </footer>
 </body>
 </html>
