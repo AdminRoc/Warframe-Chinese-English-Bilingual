@@ -709,10 +709,7 @@ footer.foot .sig .by {
 <script type="text/babel" data-presets="env,react">
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-const ENDPOINTS = {
-  v1: 'https://api.warframe.market/v1/items',
-  v2: 'https://api.warframe.market/v2/items',
-};
+const ENDPOINT = 'https://api.warframe.market/v2/items';
 const ZH_CODES = ['zh-hans', 'zh'];
 
 const CATEGORIES = [
@@ -768,7 +765,9 @@ async function fetchItems({ apiVersion, lang, signal }) {
       throw new Error(`JSON 解析失败: ${e.message}`);
     }
     
-    // 官方 API v2 返回结构：{ apiVersion, data: [...], error: null }
+    // 调试日志
+    console.log('API Response:', json);
+    
     const items = json?.data ?? [];
     if (!Array.isArray(items)) {
       throw new Error(`预期返回数组，但得到: ${typeof items}`);
@@ -786,10 +785,13 @@ async function fetchItems({ apiVersion, lang, signal }) {
   }
 }
 function normalizeItem(it, langCode = 'zh-hans') {
-  // WFM API v2 返回结构: i18n.{lang}.item_name
   const i18n = it?.i18n || {};
-  const en = i18n.en?.item_name || '';
-  const zh = i18n[langCode]?.item_name || '';
+  
+  // 尝试多种可能的结构获取英文名
+  const en = i18n.en?.item_name || i18n.en?.name || it?.item_name || it?.name || '';
+  
+  // 尝试多种可能的结构获取中文名
+  const zh = i18n[langCode]?.item_name || i18n[langCode]?.name || '';
   
   return {
     id: it?.id || it?._id || '',
@@ -801,6 +803,7 @@ function normalizeItem(it, langCode = 'zh-hans') {
 }
 function processBilingual(itemList, langCode = 'zh-hans') {
   const merged = [];
+  let skipped = 0;
   for (const item of itemList) {
     const normalized = normalizeItem(item, langCode);
     if (normalized.url_name && normalized.en_name && normalized.zh_name) {
@@ -810,9 +813,12 @@ function processBilingual(itemList, langCode = 'zh-hans') {
         zh: normalized.zh_name,
         cat: classify(normalized.url_name, normalized.thumb)
       });
+    } else {
+      skipped++;
     }
   }
   merged.sort((a, b) => (a.zh || a.en).localeCompare(b.zh || b.en, 'zh-Hans-CN'));
+  console.log(`处理完成: ${merged.length} 个完整项目, 跳过 ${skipped} 个不完整项目`);
   return merged;
 }
 
@@ -886,7 +892,6 @@ function SearchIcon() {
 }
 
 function App() {
-  const [apiVersion, setApiVersion] = useState('v1');
   const [zhCode, setZhCode] = useState('zh-hans');
 
   const [phase, setPhase] = useState('idle');
@@ -941,7 +946,7 @@ function App() {
         setPhase('error');
       }
     } finally { abortRef.current = null; }
-  }, [apiVersion, zhCode, phase, log, flashToast]);
+  }, [zhCode, phase, log, flashToast]);
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 
@@ -1045,20 +1050,14 @@ function App() {
         </div>
         <div className="row">
           <div className="field">
-            <label>API VERSION</label>
-            <select value={apiVersion} onChange={e => setApiVersion(e.target.value)} disabled={phase === 'busy'}>
-              <option value="v1">v1 · 稳定 (推荐)</option>
-              <option value="v2">v2 · 实验性</option>
-            </select>
-          </div>
-          <div className="field">
             <label>中文 LANG CODE</label>
             <select value={zhCode} onChange={e => setZhCode(e.target.value)} disabled={phase === 'busy'}>
               <option value="zh-hans">zh-hans · 简体</option>
               <option value="zh">zh</option>
             </select>
           </div>
-          <div className="toolbar" style={{ marginLeft: 'auto' }}>
+          <div style={{ marginLeft: 'auto', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--mono)' }}>API v2 直连 · 无代理</div>
+          <div className="toolbar">
             {phase === 'busy'
               ? <button className="ghost danger" onClick={cancel}>取消</button>
               : <button className="primary" onClick={run}>{rows.length ? '重新拉取' : '开始拉取'}</button>}
