@@ -709,9 +709,8 @@ footer.foot .sig .by {
 <script type="text/babel" data-presets="env,react">
 const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-// 修改: 将 ENDPOINT 改为本地后端代理地址
-const ENDPOINT = '/api/items';
-const ZH_CODES = ['zh-hans', 'zh'];
+// 修改: 使用新的静态数据接口
+const STATIC_DATA_ENDPOINT = '/api/static-data';
 
 const CATEGORIES = [
   { id: 'prime_set',    label: 'Prime 套装',        color: 'oklch(0.86 0.18 80)',  rule: (slug) => /_prime_set$/.test(slug) },
@@ -738,91 +737,6 @@ function classify(slug, thumb) {
     try { if (cat.rule(slug, thumb || '')) return cat.id; } catch {}
   }
   return 'weapon';
-}
-
-async function fetchItems({ lang, signal }) {
-  try {
-    // 修改: 添加语言参数到URL查询字符串
-    const url = `${ENDPOINT}?lang=${encodeURIComponent(lang)}`;
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: { 
-        'Accept': 'application/json',
-        'X-Requested-With': 'WarframeBilingualTool'
-      },
-      signal,
-    });
-    
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${res.statusText}`);
-    }
-    
-    let json;
-    try {
-      json = await res.json();
-    } catch (e) {
-      throw new Error(`JSON 解析失败: ${e.message}`);
-    }
-    
-    const items = json?.payload?.items ?? [];
-    if (!Array.isArray(items)) {
-      throw new Error(`预期返回数组，但得到: ${typeof items}`);
-    }
-    
-    return items;
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      throw error;
-    }
-    
-    // 修改: 更新错误提示，移除 CORS 相关说明
-    if (error.message.includes('403')) {
-      throw new Error('✗ HTTP 403 Forbidden — API拒绝访问。请稍后再试或检查API状态。');
-    } else if (error.message.includes('Failed to fetch')) {
-      // 由于现在通过后端代理，不应该再出现 CORS 问题
-      throw new Error(`✗ 网络请求失败 — 请检查后端服务是否正常运行。\n\n💡 建议操作：\n• 确保后端服务器正在运行\n• 检查网络连接\n• 查看后端日志获取详细错误信息`);
-    } else {
-      throw new Error(`✗ 请求失败: ${error.message}`);
-    }
-  }
-}
-
-function normalizeItem(it, langCode = 'zh-hans') {
-  const i18n = it?.i18n || {};
-  
-  // 尝试多种可能的结构获取英文名
-  const en = i18n.en?.item_name || i18n.en?.name || it?.item_name || it?.name || '';
-  
-  // 尝试多种可能的结构获取中文名
-  const zh = i18n[langCode]?.item_name || i18n[langCode]?.name || '';
-  
-  return {
-    id: it?.id || it?._id || '',
-    url_name: it?.url_name || it?.slug || '',
-    en_name: en,
-    zh_name: zh,
-    thumb: it?.thumb || it?.icon || '',
-  };
-}
-function processBilingual(itemList, langCode = 'zh-hans') {
-  const merged = [];
-  let skipped = 0;
-  for (const item of itemList) {
-    const normalized = normalizeItem(item, langCode);
-    if (normalized.url_name && normalized.en_name && normalized.zh_name) {
-      merged.push({
-        url_name: normalized.url_name,
-        en: normalized.en_name,
-        zh: normalized.zh_name,
-        cat: classify(normalized.url_name, normalized.thumb)
-      });
-    } else {
-      skipped++;
-    }
-  }
-  merged.sort((a, b) => (a.zh || a.en).localeCompare(b.zh || b.en, 'zh-Hans-CN'));
-  console.log(`处理完成: ${merged.length} 个完整项目, 跳过 ${skipped} 个不完整项目`);
-  return merged;
 }
 
 /* Exports */
@@ -895,8 +809,6 @@ function SearchIcon() {
 }
 
 function App() {
-  const [zhCode, setZhCode] = useState('zh-hans');
-
   const [phase, setPhase] = useState('idle');
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState([]);
@@ -918,22 +830,48 @@ function App() {
     setTimeout(() => setToast(null), 2600);
   }, []);
 
-  const run = useCallback(async () => {
+  // 修改: 新的获取静态数据函数
+  const fetchStaticData = useCallback(async () => {
     if (phase === 'busy') return;
     setLogs([]); setRows([]); setProgress(0); setPhase('busy');
     const controller = new AbortController(); abortRef.current = controller;
-    log(`API: WFM v2 · Language: ${zhCode}`, 'info');
+    log(`正在获取预加载的完整物品数据...`, 'info');
 
     try {
-      log('请求物品列表（包含中英文翻译）...', 'info');
-      setProgress(20);
-      // 修复4: 移除未使用的apiVersion参数
-      const itemList = await fetchItems({ lang: zhCode, signal: controller.signal });
-      log(`✓ 返回 ${itemList.length} 项`, 'ok');
+      setProgress(30);
+      const res = await fetch(STATIC_DATA_ENDPOINT, {
+        method: 'GET',
+        headers: { 
+          'Accept': 'application/json',
+          'X-Requested-With': 'WarframeBilingualTool'
+        },
+        signal: controller.signal,
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+      
+      let json;
+      try {
+        json = await res.json();
+      } catch (e) {
+        throw new Error(`JSON 解析失败: ${e.message}`);
+      }
+      
+      if (json.error) {
+        throw new Error(json.error);
+      }
+      
+      if (!Array.isArray(json.data)) {
+        throw new Error(`预期返回数组，但得到: ${typeof json.data}`);
+      }
+      
       setProgress(80);
-
-      log('处理双语数据并自动分类 ...', 'info');
-      const merged = processBilingual(itemList, zhCode).filter(r => r.zh && r.en);
+      log(`✓ 返回 ${json.data.length} 项`, 'ok');
+      
+      // 数据已经过预处理，直接使用
+      const merged = json.data.filter(r => r.zh && r.en);
       setRows(merged);
       setProgress(100);
 
@@ -950,7 +888,7 @@ function App() {
         setPhase('error');
       }
     } finally { abortRef.current = null; }
-  }, [zhCode, phase, log, flashToast]);
+  }, [phase, log, flashToast]);
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 
@@ -1029,7 +967,7 @@ function App() {
               <span className="en">BILINGUAL ITEM ATLAS</span>
             </h1>
             <p className="lead">
-              基于 <code>warframe.market</code> 公开 API，一键获取全部可交易物品的
+              基于 <code>warframe.market</code> 公开 API，通过<strong>后端代理</strong>一键获取全部可交易物品的
               <strong> 中文 ↔ English </strong>
               一一对应映射。支持按物品类型筛选，导出 <strong>Excel / CSV / TSV / JSON / Markdown</strong>。
             </p>
@@ -1053,18 +991,11 @@ function App() {
           <span className="heading-cn">· 数据源</span>
         </div>
         <div className="row">
-          <div className="field">
-            <label>中文 LANG CODE</label>
-            <select value={zhCode} onChange={e => setZhCode(e.target.value)} disabled={phase === 'busy'}>
-              <option value="zh-hans">zh-hans · 简体</option>
-              <option value="zh">zh</option>
-            </select>
-          </div>
-          <div style={{ marginLeft: 'auto', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--mono)' }}>API v2 直连 · 无代理</div>
+          <div style={{ marginLeft: 'auto', color: 'var(--text-faint)', fontSize: 12, fontFamily: 'var(--mono)' }}>预加载静态数据 · 启动时由后端加载</div>
           <div className="toolbar">
             {phase === 'busy'
               ? <button className="ghost danger" onClick={cancel}>取消</button>
-              : <button className="primary" onClick={run}>{rows.length ? '重新拉取' : '开始拉取'}</button>}
+              : <button className="primary" onClick={fetchStaticData}>{rows.length ? '重新拉取' : '开始拉取'}</button>}
           </div>
         </div>
 
