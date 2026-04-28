@@ -21,15 +21,24 @@ app.get('/api/items', async (req, res) => {
     // 从查询参数获取语言（默认为 zh-hans）
     const lang = req.query.lang || 'zh-hans';
     
+    // 验证语言参数
+    const validLangs = ['en', 'zh-hans', 'zh', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pl', 'pt', 'ru', 'tr', 'uk'];
+    if (!validLangs.includes(lang)) {
+      return res.status(400).json({
+        error: '无效的语言参数',
+        message: `支持的语言: ${validLangs.join(', ')}`
+      });
+    }
+    
     // 构建目标 API URL
-    const apiUrl = `https://api.warframe.market/v2/items?include=item,i18n&language=${lang}`;
+    const apiUrl = `https://api.warframe.market/v2/items?include=item,i18n`;
     
     // 设置请求头
     const headers = {
       'Accept': 'application/json',
       'Accept-Language': lang,
       'Platform': 'pc',
-      'User-Agent': 'WarframeBilingualTool/1.0 (+https://github.com/your-username/Warframe-Chinese-English-Bilingual)'
+      'User-Agent': 'WarframeBilingualTool/1.0 (+https://github.com/AdminRoc/Warframe-Chinese-English-Bilingual)'
     };
     
     // 向 Warframe Market API 发起请求
@@ -66,5 +75,5 @@ app.get('/api/items', async (req, res) => {
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`服务器运行在 http://localhost:${PORT}`);
-  console.log('前端应通过此服务器访问，而非直接打开 HTML 文件');
+  console.log('请在浏览器中访问 http://localhost:3000 查看应用');
 });

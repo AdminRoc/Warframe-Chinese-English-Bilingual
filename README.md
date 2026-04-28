@@ -22,7 +22,21 @@
 
 ## 🚀 快速开始
 
-### 方式 A — 直接打开本地文件
+### 方式 A — 本地运行（推荐）
+
+1. 确保已安装 [Node.js](https://nodejs.org/) (v14+)
+2. 下载本仓库为 zip 或 `git clone`
+3. 在项目根目录打开终端，运行：
+   ```bash
+   npm install express axios
+   ```
+4. 启动本地服务器：
+   ```bash
+   node server.js
+   ```
+5. 打开浏览器访问 `http://localhost:3000`
+
+### 方式 B — 直接打开本地文件
 
 1. 下载本仓库为 zip 或 `git clone`
 2. 双击 `index.html`，浏览器打开
@@ -30,7 +44,7 @@
 4. 在「类型筛选」里勾选要保留的物品类型（默认全选）
 5. 点击 **下载 Excel / CSV / TSV / JSON / Markdown**
 
-### 方式 B — 通过GitHub Pages 公开链接访问 🌐
+### 方式 C — 通过GitHub Pages 公开链接访问 🌐
 
 - 直接访问 https://adminroc.github.io/Warframe-Chinese-English-Bilingual/
 
