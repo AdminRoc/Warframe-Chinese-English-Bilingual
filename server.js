@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs').promises;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,6 +9,9 @@ const PORT = process.env.PORT || 3000;
 // 全局变量存储预加载的数据
 let preloadedData = null;
 let preloadStatus = 'idle'; // idle, loading, ready, error
+
+// 数据文件目录
+const DATA_DIR = path.join(__dirname, 'data');
 
 // 允许来自前端的跨域请求
 app.use((req, res, next) => {
@@ -91,8 +95,30 @@ async function preloadFullData() {
     merged.sort((a, b) => (a.zh || a.en).localeCompare(b.zh || b.en, 'zh-Hans-CN'));
     
     preloadedData = merged;
+    
+    // 创建数据目录
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    
+    // 按类别拆分数据并保存到文件
+    const categories = {};
+    for (const item of merged) {
+      if (!categories[item.cat]) {
+        categories[item.cat] = [];
+      }
+      categories[item.cat].push(item);
+    }
+    
+    // 保存每个类别的数据到单独文件
+    for (const [catId, items] of Object.entries(categories)) {
+      const filePath = path.join(DATA_DIR, `${catId}.json`);
+      await fs.writeFile(filePath, JSON.stringify(items, null, 2));
+    }
+    
+    // 保存完整数据文件
+    await fs.writeFile(path.join(DATA_DIR, 'all.json'), JSON.stringify(merged, null, 2));
+    
     preloadStatus = 'ready';
-    console.log(`预加载完成: ${merged.length} 个完整项目`);
+    console.log(`预加载完成: ${merged.length} 个完整项目，已保存到 ${DATA_DIR}`);
   } catch (error) {
     console.error('预加载数据失败:', error.message);
     preloadStatus = 'error';
@@ -146,6 +172,68 @@ app.get('/api/static-data', (req, res) => {
   
   // preloadStatus === 'ready'
   res.json({ data: preloadedData });
+});
+
+// 新增：提供所有类别数据
+app.get('/api/categories', async (req, res) => {
+  if (preloadStatus === 'error') {
+    return res.status(500).json({ error: '预加载数据失败，请重启服务器' });
+  }
+  
+  if (preloadStatus === 'loading') {
+    return res.status(503).json({ error: '数据正在加载中，请稍后再试' });
+  }
+  
+  if (preloadStatus === 'idle') {
+    // 如果还没开始加载，立即开始加载
+    preloadFullData();
+    return res.status(503).json({ error: '数据正在加载中，请稍后再试' });
+  }
+  
+  try {
+    // 读取所有类别文件
+    const files = await fs.readdir(DATA_DIR);
+    const categoryFiles = files.filter(file => file.endsWith('.json') && file !== 'all.json');
+    
+    const categories = {};
+    for (const file of categoryFiles) {
+      const catId = file.replace('.json', '');
+      const filePath = path.join(DATA_DIR, file);
+      const data = await fs.readFile(filePath, 'utf8');
+      categories[catId] = JSON.parse(data);
+    }
+    
+    res.json({ categories });
+  } catch (error) {
+    console.error('读取类别数据失败:', error.message);
+    res.status(500).json({ error: '读取数据文件失败' });
+  }
+});
+
+// 新增：提供特定类别数据
+app.get('/api/category/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  if (preloadStatus === 'error') {
+    return res.status(500).json({ error: '预加载数据失败，请重启服务器' });
+  }
+  
+  if (preloadStatus === 'loading') {
+    return res.status(503).json({ error: '数据正在加载中，请稍后再试' });
+  }
+  
+  try {
+    const filePath = path.join(DATA_DIR, `${id}.json`);
+    const data = await fs.readFile(filePath, 'utf8');
+    res.json(JSON.parse(data));
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      res.status(404).json({ error: '类别不存在' });
+    } else {
+      console.error('读取类别数据失败:', error.message);
+      res.status(500).json({ error: '读取数据文件失败' });
+    }
+  }
 });
 
 // 原有的代理 API（保留但不再使用）
