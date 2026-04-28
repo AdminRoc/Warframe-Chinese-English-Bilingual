@@ -1,774 +1,8007 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Warframe 物品词典 | 单文件终极版</title>
-    <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Noto+Sans+SC:wght@400;700&display=swap');
+<meta charset="utf-8" />
+<title>WARFRAME · 中英文物品对照表 / Roc · CSC联盟</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="author" content="Roc · CSC联盟" />
+<meta name="description" content="Warframe.market V2 API 全部可交易物品中英文双语对照表生成器。作者: Roc (CSC联盟)" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+/* 完美保留你原有的精美 CSS */
+:root {
+  --bg-0: #04050a; --bg-1: #08091a;
+  --line: rgba(255,255,255,0.08); --line-2: rgba(255,255,255,0.16);
+  --text: #f0f3ff; --text-dim: #8e98b8; --text-faint: #4d5572;
+  --c-cyan:    oklch(0.82 0.20 195);
+  --c-violet:  oklch(0.72 0.24 305);
+  --c-pink:    oklch(0.75 0.24 350);
+  --c-amber:   oklch(0.85 0.18 75);
+  --c-lime:    oklch(0.86 0.20 130);
+  --c-coral:   oklch(0.74 0.22 25);
+  --good: oklch(0.82 0.18 150); --warn: oklch(0.84 0.16 75); --bad: oklch(0.72 0.22 25);
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --display: 'Orbitron', 'Noto Sans SC', sans-serif;
+  --sans: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body { background: var(--bg-0); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--c-cyan), var(--c-violet)); border-radius: 10px; opacity: 0.6; }
 
-        :root {
-            --bg: #05050b;
-            --primary: #00f0ff;
-            --secondary: #ff0055;
-            --tertiary: #b000ff;
-            --glass: rgba(15, 15, 25, 0.65);
-            --border: rgba(0, 240, 255, 0.25);
-            --text-main: #e0fbfc;
-            --text-dim: #8b9bb4;
-        }
+.bg-layer { position: fixed; inset: 0; z-index: -3; pointer-events: none; }
+.bg-base {
+  background:
+    radial-gradient(ellipse 1200px 700px at 18% 12%, color-mix(in oklch, var(--c-cyan) 40%, transparent), transparent 60%),
+    radial-gradient(ellipse 1100px 800px at 86% 22%, color-mix(in oklch, var(--c-violet) 38%, transparent), transparent 60%),
+    radial-gradient(ellipse 900px 700px at 70% 92%, color-mix(in oklch, var(--c-pink) 32%, transparent), transparent 60%),
+    radial-gradient(ellipse 700px 600px at 8% 88%, color-mix(in oklch, var(--c-amber) 24%, transparent), transparent 65%),
+    linear-gradient(180deg, #03040a 0%, #06081a 60%, #02030a 100%);
+  animation: drift 32s ease-in-out infinite alternate;
+}
+@keyframes drift { 0% { transform: scale(1) translate3d(0,0,0); } 50% { transform: scale(1.03) translate3d(-1.5%, 1%, 0); } 100% { transform: scale(1.01) translate3d(2%, -1%, 0); } }
+.bg-grid {
+  background-image: linear-gradient(rgba(120,180,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(120,180,255,0.06) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
+  z-index: -2;
+}
+.bg-stars {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,0.9), transparent 60%),
+    radial-gradient(1.4px 1.4px at 38% 8%, rgba(180,230,255,0.7), transparent 60%),
+    radial-gradient(1px 1px at 62% 28%, rgba(255,255,255,0.6), transparent 60%),
+    radial-gradient(1.6px 1.6px at 82% 48%, rgba(255,200,230,0.7), transparent 60%),
+    radial-gradient(1px 1px at 24% 62%, rgba(255,255,255,0.7), transparent 60%),
+    radial-gradient(1.2px 1.2px at 56% 78%, rgba(200,255,230,0.6), transparent 60%),
+    radial-gradient(1px 1px at 88% 84%, rgba(255,255,255,0.6), transparent 60%);
+  animation: twinkle 5s ease-in-out infinite alternate;
+  z-index: -2;
+}
+@keyframes twinkle { 0% { opacity: 0.45; } 100% { opacity: 1; } }
+.bg-scan { z-index: -1; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; opacity: 0.7; }
+.orb { position: fixed; z-index: -1; width: 540px; height: 540px; border-radius: 50%; filter: blur(90px); opacity: 0.42; pointer-events: none; animation: orbFloat 22s ease-in-out infinite alternate; }
+.orb.a { top: -160px; left: -120px; background: var(--c-cyan); }
+.orb.b { top: 30%; right: -180px; background: var(--c-violet); animation-delay: -6s; }
+.orb.c { bottom: -180px; left: 22%; background: var(--c-pink); animation-delay: -12s; }
+@keyframes orbFloat { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px, 30px) scale(1.08); } 100% { transform: translate(-30px, -20px) scale(0.95); } }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+.app { max-width: 1360px; margin: 0 auto; padding: 28px 28px 80px; position: relative; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-family: 'Noto Sans SC', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.1), transparent 45%),
-                radial-gradient(circle at 85% 30%, rgba(255, 0, 85, 0.1), transparent 45%);
-        }
+.hero { position: relative; padding: 38px 40px 36px; margin-bottom: 22px; border-radius: 24px; border: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012)), rgba(8, 10, 22, 0.6);
+  backdrop-filter: blur(22px) saturate(1.3); -webkit-backdrop-filter: blur(22px) saturate(1.3); overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%); background-size: 250% 100%; animation: heroShine 7s linear infinite; pointer-events: none; }
+@keyframes heroShine { from { background-position: 0% 0; } to { background-position: 250% 0; } }
+.hero::after { content: ''; position: absolute; inset: -1px; border-radius: 24px; padding: 1px;
+  background: conic-gradient(from var(--ang, 0deg), transparent 0%, var(--c-cyan) 12%, transparent 24%, var(--c-violet) 50%, transparent 62%, var(--c-pink) 80%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0.7; animation: spin 14s linear infinite; pointer-events: none; }
+@property --ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes spin { to { --ang: 360deg; } }
 
-        /* 动态背景光球 */
-        .orb {
-            position: fixed; width: 45vw; height: 45vw; border-radius: 50%;
-            filter: blur(120px); z-index: -1; animation: float 25s infinite alternate ease-in-out;
-        }
-        .orb-1 { top: -10%; left: -10%; background: var(--tertiary); opacity: 0.25; }
-        .orb-2 { bottom: -10%; right: -10%; background: var(--primary); opacity: 0.15; animation-delay: -10s; }
+.hero-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; flex-wrap: wrap; position: relative; z-index: 1; }
+.hero-left { flex: 1; min-width: 320px; }
 
-        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(8%, 12%) scale(1.1); } }
+.eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 14px; }
+.eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--c-cyan); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--c-cyan) 50%, transparent); } 50% { box-shadow: 0 0 0 10px transparent; } }
+.eyebrow .div { width: 32px; height: 1px; background: linear-gradient(90deg, var(--text-faint), transparent); }
 
-        .container { width: 95%; max-width: 1100px; margin-top: 60px; margin-bottom: 50px; flex: 1; display: flex; flex-direction: column;}
+h1.title {
+  font-family: var(--display); font-weight: 900; letter-spacing: 0.02em;
+  font-size: clamp(30px, 4.6vw, 56px); line-height: 1.05; margin: 0 0 10px; text-transform: uppercase;
+  background: linear-gradient(95deg, #fff 0%, color-mix(in oklch, var(--c-cyan) 75%, white) 30%, color-mix(in oklch, var(--c-violet) 75%, white) 60%, color-mix(in oklch, var(--c-pink) 75%, white) 85%, #fff 100%);
+  background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: titleShift 9s linear infinite; text-shadow: 0 0 60px color-mix(in oklch, var(--c-violet) 45%, transparent);
+  display: flex; flex-direction: column; gap: 2px;
+}
+@keyframes titleShift { from { background-position: 0% 50%; } to { background-position: 250% 50%; } }
+h1.title .cn { font-family: 'Noto Sans SC', sans-serif; font-weight: 900; letter-spacing: 0.04em; font-size: 0.78em; display: flex; align-items: center; gap: 18px; }
+h1.title .cn::after { content: ''; flex: 1; height: 2px; background: linear-gradient(90deg, color-mix(in oklch, var(--c-violet) 60%, transparent), transparent); border-radius: 2px; max-width: 220px; }
+h1.title .en { font-size: 1em; letter-spacing: 0.04em; white-space: nowrap; }
 
-        /* 顶部标题栏 */
-        header { text-align: center; margin-bottom: 40px; }
-        h1 {
-            font-family: 'Orbitron', sans-serif; font-size: 3.2rem; font-weight: 800;
-            background: linear-gradient(90deg, var(--primary), #ffffff, var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px rgba(0, 240, 255, 0.3); letter-spacing: 3px; margin-bottom: 10px;
-        }
-        p.subtitle { color: var(--text-dim); font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
+p.lead { color: var(--text-dim); max-width: 64ch; font-size: 15.5px; line-height: 1.62; margin: 8px 0 0; }
+p.lead code { font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 5px; border: 1px solid var(--line); color: color-mix(in oklch, var(--c-cyan) 70%, white); }
+p.lead strong { color: #fff; }
 
-        /* 搜索与工具栏 */
-        .toolbar {
-            display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; align-items: center;
-            background: var(--glass); padding: 25px; border-radius: 20px; 
-            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-            backdrop-filter: blur(20px);
-        }
-        .search-box { flex: 1; min-width: 300px; position: relative; }
-        .search-box input {
-            width: 100%; padding: 18px 25px; border-radius: 12px; border: 1px solid var(--border);
-            background: rgba(0,0,0,0.6); color: white; font-size: 1.2rem; outline: none;
-            transition: all 0.3s ease; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 2px 10px rgba(0,0,0,0.5); }
-        .search-box input::placeholder { color: rgba(255,255,255,0.3); }
+.author-card { position: relative; padding: 22px 26px; border-radius: 18px; border: 1px solid var(--line-2);
+  background: linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)), rgba(8, 10, 22, 0.7);
+  backdrop-filter: blur(12px); min-width: 280px; text-align: right; font-family: var(--mono); overflow: hidden; }
+.author-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 100% 0%, color-mix(in oklch, var(--c-cyan) 35%, transparent), transparent 60%); pointer-events: none; }
+.author-card .author-label { font-size: 10px; letter-spacing: 0.32em; color: var(--text-faint); margin-bottom: 4px; text-transform: uppercase; }
+.author-card .roc {
+  font-family: var(--display); font-weight: 900; font-size: 56px; line-height: 0.95; letter-spacing: 0.04em; margin: 2px 0 8px;
+  background: linear-gradient(115deg, var(--c-cyan) 0%, var(--c-violet) 50%, var(--c-pink) 100%); background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: titleShift 6s linear infinite; filter: drop-shadow(0 4px 18px color-mix(in oklch, var(--c-violet) 50%, transparent));
+}
+.author-card .from { font-size: 12px; color: var(--text-dim); letter-spacing: 0.12em; margin-bottom: 10px; }
+.author-card .from strong { background: linear-gradient(90deg, var(--c-amber), var(--c-pink)); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; }
+.author-card .source { font-size: 11px; color: var(--text-faint); letter-spacing: 0.06em; border-top: 1px solid var(--line); padding-top: 10px; margin-top: 6px; }
+.author-card .source span { color: var(--text-dim); font-weight: 500; }
 
-        .export-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-        button.btn {
-            padding: 12px 24px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
-            background: rgba(255,255,255,0.05); color: white; cursor: pointer;
-            transition: all 0.2s ease; font-family: 'Orbitron', 'Noto Sans SC', sans-serif; font-size: 0.95rem; font-weight: bold; letter-spacing: 1px;
-        }
-        button.btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2); }
-        button.btn-excel { background: linear-gradient(45deg, #00b09b, #96c93d); border: none; color: #000; box-shadow: 0 5px 15px rgba(0, 255, 136, 0.2); }
-        button.btn-excel:hover { box-shadow: 0 8px 25px rgba(0, 255, 136, 0.5); background: linear-gradient(45deg, #02c7b0, #a8df45); }
+.card { position: relative; border-radius: 20px; border: 1px solid var(--line); background: rgba(10, 13, 26, 0.55);
+  backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  padding: 24px 26px; overflow: hidden; }
+.card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--c-cyan), var(--c-violet), var(--c-pink)); opacity: 0.6; }
+.card + .card { margin-top: 18px; }
 
-        /* 数据表格面板 */
-        .table-panel {
-            background: var(--glass); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; flex: 1;
-            backdrop-filter: blur(25px);
-        }
-        .table-header {
-            display: flex; background: rgba(0,0,0,0.7); padding: 20px 30px;
-            border-bottom: 1px solid rgba(0, 240, 255, 0.2); font-weight: bold; color: var(--primary); 
-            letter-spacing: 2px; font-size: 1.1rem;
-        }
-        .table-body { max-height: 65vh; overflow-y: auto; scroll-behavior: smooth; }
-        
-        /* 自定义滚动条 */
-        .table-body::-webkit-scrollbar { width: 10px; }
-        .table-body::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .table-body::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 5px; }
-        .table-body::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.6); }
-        
-        .row { display: flex; padding: 16px 30px; border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s; align-items: center;}
-        .row:hover { background: rgba(0, 240, 255, 0.08); }
-        .col-id { width: 70px; color: var(--secondary); font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold; }
-        .col-zh { flex: 1; font-weight: 700; font-size: 1.15rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .col-en { flex: 1; color: var(--text-dim); font-family: 'Orbitron', sans-serif; text-align: right; font-size: 1.05rem;}
+.heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.heading .badge-num { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px;
+  background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); color: #04060c; font-family: var(--display); font-weight: 800; font-size: 13px;
+  box-shadow: 0 4px 14px -4px color-mix(in oklch, var(--c-violet) 70%, transparent); }
+.heading h2 { font-family: var(--display); font-size: 14px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-dim); margin: 0; font-weight: 700; }
+.heading .heading-cn { font-family: 'Noto Sans SC', sans-serif; font-weight: 700; font-size: 14px; color: var(--text-dim); letter-spacing: 0.04em; margin-left: 4px; }
 
-        .status-msg { text-align: center; padding: 60px; color: var(--text-dim); font-size: 1.2rem; letter-spacing: 1px; }
-        .data-count { text-align: right; padding: 15px 30px; background: rgba(0,0,0,0.5); font-family: 'Orbitron', sans-serif; color: var(--text-faint); font-size: 0.9rem;}
+input[type=text] { background: rgba(4, 5, 12, 0.85); color: var(--text); border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 10px 14px; font-family: var(--sans); font-size: 13.5px; min-width: 220px;
+  transition: border-color .2s, box-shadow .2s, background .2s; }
+input[type=text]:focus { outline: none; border-color: color-mix(in oklch, var(--c-cyan) 75%, transparent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-cyan) 22%, transparent); }
 
-        footer { padding: 30px; text-align: center; color: var(--text-dim); font-size: 0.9rem; width: 100%; border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto; background: rgba(0,0,0,0.6); letter-spacing: 1px;}
-        footer span { color: var(--primary); font-weight: bold; }
-    </style>
+button { position: relative; background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--line-2); border-radius: 11px;
+  padding: 11px 18px; font-family: var(--sans); font-weight: 600; font-size: 13px; cursor: pointer; letter-spacing: 0.02em;
+  transition: border-color .2s, transform .15s, background .2s, box-shadow .2s, color .2s; overflow: hidden; white-space: nowrap; }
+button:hover:not(:disabled) { border-color: color-mix(in oklch, var(--c-cyan) 70%, transparent); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(0); }
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+button.primary { background: linear-gradient(135deg, var(--c-cyan), var(--c-violet)); border-color: transparent; color: #04060c;
+  font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  box-shadow: 0 8px 28px -8px color-mix(in oklch, var(--c-violet) 70%, transparent), inset 0 1px 0 rgba(255,255,255,0.5); }
+button.primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 12px 36px -10px color-mix(in oklch, var(--c-violet) 80%, transparent), inset 0 1px 0 rgba(255,255,255,0.5); }
+button.export-xlsx { background: linear-gradient(135deg, var(--c-lime), var(--c-amber)); color: #051010; font-weight: 800; border-color: transparent;
+  box-shadow: 0 8px 24px -10px color-mix(in oklch, var(--c-lime) 70%, transparent); }
+button.export-xlsx:hover:not(:disabled) { filter: brightness(1.08); }
+
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.toolbar .spacer { flex: 1; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 22px 0; }
+@media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { position: relative; background: rgba(10, 13, 26, 0.55); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; overflow: hidden; backdrop-filter: blur(12px); }
+.stat::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--c1, var(--c-cyan)), var(--c2, var(--c-violet))); }
+.stat::after { content: ''; position: absolute; right: -50px; top: -50px; width: 140px; height: 140px;
+  background: radial-gradient(circle, color-mix(in oklch, var(--c1, var(--c-cyan)) 45%, transparent), transparent 60%); filter: blur(20px); opacity: 0.5; }
+.stat .k { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--text-faint); position: relative; z-index: 1; }
+.stat .v { font-family: var(--display); font-weight: 800; font-size: 32px; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; position: relative; z-index: 1; }
+.stat .v.gradient { background: linear-gradient(120deg, var(--c1, var(--c-cyan)), var(--c2, var(--c-violet))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stat .sub { font-family: var(--mono); font-size: 10px; color: var(--text-faint); letter-spacing: 0.1em; margin-top: 4px; position: relative; z-index: 1; }
+
+.table-card { padding: 0; }
+.table-toolbar { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.02); }
+.search-wrap { position: relative; flex: 1; max-width: 480px; }
+.search-wrap input { width: 100%; padding-left: 38px; }
+.search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-faint); }
+.table-toolbar .count { margin-left: auto; color: var(--text-faint); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; }
+.table-scroll { max-height: 600px; overflow: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+thead th { position: sticky; top: 0; z-index: 1; background: rgba(8,10,20,0.96); backdrop-filter: blur(8px); text-align: left; padding: 12px 20px;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); border-bottom: 1px solid var(--line); font-weight: 700; font-family: var(--mono); }
+tbody td { padding: 11px 20px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+tbody tr { transition: background .14s; }
+tbody tr:hover td { background: rgba(255,255,255,0.04); }
+td.zh { color: #fff; font-weight: 500; font-family: 'Noto Sans SC', sans-serif; }
+td.en { color: var(--text-dim); font-family: var(--mono); font-size: 12.5px; }
+.empty { padding: 70px 24px; text-align: center; color: var(--text-faint); font-size: 13px; }
+.empty .big { font-size: 18px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; font-family: var(--display); letter-spacing: 0.06em; }
+
+footer.foot { margin-top: 32px; padding: 26px 28px; border-radius: 18px; border: 1px solid var(--line); background: rgba(6,8,18,0.55); backdrop-filter: blur(12px);
+  display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; }
+footer.foot .left { font-size: 12.5px; color: var(--text-faint); line-height: 1.75; }
+footer.foot .left strong { color: var(--text-dim); font-weight: 700; }
+footer.foot .left a { color: color-mix(in oklch, var(--c-cyan) 80%, white); text-decoration: none; }
+footer.foot .left a:hover { text-decoration: underline; }
+footer.foot .sig { text-align: right; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--text-faint); }
+footer.foot .sig .by { font-family: var(--display); font-size: 28px; font-weight: 900; letter-spacing: 0.06em;
+  background: linear-gradient(115deg, var(--c-cyan), var(--c-violet), var(--c-pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 50; padding: 12px 22px;
+  background: rgba(8,10,20,0.95); border: 1px solid var(--line-2); border-radius: 999px; color: #fff; font-size: 13px; font-family: var(--mono);
+  display: flex; align-items: center; gap: 10px; backdrop-filter: blur(12px);
+  animation: toastIn .25s ease, toastOut .25s ease forwards 2.4s; box-shadow: 0 14px 40px -12px rgba(0,0,0,0.8); }
+.toast .ok { color: var(--good); font-weight: 700; }
+@keyframes toastIn { from { transform: translate(-50%, 30px); opacity: 0; } }
+@keyframes toastOut { to { transform: translate(-50%, 30px); opacity: 0; } }
+
+.fade-in { animation: fadeUp .5s ease both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+</style>
 </head>
 <body>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
+<div class="bg-layer bg-base"></div>
+<div class="bg-layer bg-grid"></div>
+<div class="bg-layer bg-stars"></div>
+<div class="bg-layer bg-scan"></div>
+<div class="orb a"></div>
+<div class="orb b"></div>
+<div class="orb c"></div>
+<div id="root"></div>
 
-    English" 的格式换行追加在下面即可 -->
-    <script id="data-source" type="text/plain">
-保障·锡斯特双枪 --> Secura Dual Cestra
-匍匐靶心 --> Creeping Bullseye
-异融 Alad V 刺杀 （钥匙） --> Mutalist Alad V Assassinate (Key)
-辐射缴械 --> Irradiating Disarm
-反物质吸收 --> Antimatter Absorb
-赋能·壁垒 --> Arcane Barrier
-赋能·冰冷 --> Arcane Ice
-终极·螺钉步枪 --> Telos Boltor
-Frost Prime 一套 --> Frost Prime Set
-触媒连动 --> Catalyzer Link
-定位辅助 --> Targeting Subsystem
-斯特朗·亡魂 枪机 --> Strun Wraith Receiver
-构造裂缝 --> Tectonic Fracture
-Mantis 一套 --> Mantis Set
-酸性弹药 --> Acid Shells
-夜巡燃烧弹 --> Nightwatch Napalm
-类星钻体 --> Quasar Drill
-彗星爆发 --> Comet Blast
-星云钻孔 --> Nebula Bore
-死亡使徒 刀刃 --> Kaszas Blade
-极速电磁步枪 枪机 --> Velocitus Receiver
-巨浪 枪管 --> Fluctus Barrel
-巨浪 弓臂 --> Fluctus Limbs
-巨浪 枪托 --> Fluctus Stock
-什长双枪 枪管 --> Decurion Barrel
-Hydroid Prime 一套 --> Hydroid Prime Set
-净化奥罗金 --> Cleanse Orokin
-Kappa 信标 --> Kappa Beacon
-星形绯红石 --> Star Crimzian
-正直·打击 --> Virtuos Strike
-猎人 肾上腺素 --> Hunter Adrenaline
-蝰蛇·亡魂 --> Viper Wraith
-奥罗金荒废广场场景 --> Orokin Derelict Plaza Scene
-Grineer 造船厂场景 --> Grineer Shipyards Manufactory Scene
-感染舰桥场景 --> Infested Ship Bridge Scene
-月球苗圃场景 --> Lua Nursery Scene
-Corpus 集气城市管道场景 --> Corpus Gas City Conduit Scene
-Grineer 驻扎地反应炉场景 --> Grineer Settlement Reactor Scene
-Corpus 冰封星球残骸场景 --> Corpus Ice Planet Wreckage Scene
-夜灵 Madurai 晶体 --> Eidolon Madurai Lens
-夜灵 Vazarin 晶体 --> Eidolon Vazarin Lens
-夜灵 Unairu 晶体 --> Eidolon Unairu Lens
-Zephyr Prime 机体 蓝图 --> Zephyr Prime Chassis Blueprint
-Mycona 殖民地场景 --> Mycona Colony Scene
-和平·高飞 --> Pax Soar
-救赎者 Prime 刀刃 --> Redeemer Prime Blade
-觉醒双枪 Prime 枪机 --> Akjagara Prime Receiver
-组合枪裂罅 Mod （尚未揭开） --> Kitgun Riven Mod (Veiled)
-光谱虹吸 --> Spectrosiphon
-恶狼战锤锤头 --> Wolf Sledge Head
-恶狼战锤 一套 --> Wolf Sledge Set
-奥布山谷场景 --> Orb Vallis Scene
-诸葛连弩 Prime 弓身 --> Zhuge Prime Grip
-寒冰之力 --> Freeze Force
-旋风虎击 --> Swirling Tiger
-随机应变 --> Quick Thinking
-蛟龙 Prime 蓝图 --> Wyrm Prime Blueprint
-簧压刀刃 --> Spring-Loaded Blade
-动力转移 --> Kinetic Diversion
-奋力一掷 --> Power Throw
-宿命真理 --> Fateful Truth
-致命火力 --> Malignant Force
-卓越防御 --> Superior Defenses
-能量转化 --> Energy Inversion
-破碎正义 --> Shattering Justice
-爆发装填 --> Fast Hands
-极地弹仓 --> Polar Magazine
-步枪增幅 --> Rifle Amp
-残余 --> Spare Parts
-有去无回 --> No Return
-汽化 --> Vaporize
-恶性扩散 --> Vicious Spread
-敌人感应 --> Enemy Sense
-盲怒 --> Blind Rage
-步枪弹药转换 --> Rifle Ammo Mutation
-凯旋将军·破坏者 枪管 --> Imperator Vandal Barrel
-欧特鲁斯 Prime 刀刃 --> Orthos Prime Blade
-Loki Prime 系统 蓝图 --> Loki Prime Systems Blueprint
-Naramon 晶体 --> Naramon Lens
-协力窜升 --> Coaction Drift
-通晓霰弹枪 --> Shotgun Savvy
-爆裂刀刃 --> Volcanic Edge
-陨蜓 Prime 外甲 蓝图 --> Odonata Prime Harness Blueprint
-回气再起 --> Secondary Wind
-陨蜓 Prime 系统 蓝图 --> Odonata Prime Systems Blueprint
-致命一击 --> Point Strike
-上升打击 --> Soaring Strike
-强力猛击 --> Pummel
-极速电磁步枪 枪托 --> Velocitus Stock
-拉斯波恩 握柄 --> Rathbone Handle
-拉斯波恩 锤头 --> Rathbone Head
-拉特昂·亡魂 枪管 --> Latron Wraith Barrel
-火焰装填 --> Heated Charge
-系统重划 --> System Reroute
-蛇发女妖·亡魂 枪机 --> Gorgon Wraith Receiver
-精算射击 --> Calculated Shot
-活力 --> Vigor
-飞扬 Prime 镖袋 --> Hikou Prime Pouch
-收割者 Prime 蓝图 --> Reaper Prime Blueprint
-震击 秘奥头盔 --> Arcane Thrak Helmet
-抵近射击 Prime --> Primed Point Blank
-三幂之力 --> Power Of Three
-Rhino Prime 头部神经光元 蓝图 --> Rhino Prime Neuroptics Blueprint
-缴械纯净 --> Disarming Purity
-蛇发女妖·亡魂 枪托 --> Gorgon Wraith Stock
-布里斯提卡 Prime 弓弦 --> Ballistica Prime String
-双蛇牙突 --> Crossing Snakes
-返老还童 --> Rejuvenation
-挖掘 --> Dig
-粉碎器 --> Shredder
-无尽苦难 --> Continuous Misery
-瓦斯托 Prime 一套 --> Vasto Prime Set
-阿瓦隆 秘奥头盔 --> Arcane Avalon Helmet
-铝热焊弹 --> Thermite Rounds
-通量 秘奥头盔 --> Arcane Flux Helmet
-终极·螺钉双枪 --> Telos Akbolto
-预言 秘奥头盔 --> Arcane Aura Helmet
-圣洁·雷爆信镖 --> Sancti Castanas
-裂缝打击 --> Rift Strike
-火神闪击 --> Vulcan Blitz
-策略 秘奥头盔 --> Arcane Gambit Helmet
-氯毒 秘奥头盔 --> Arcane Chlora Helmet
-机敏 秘奥头盔 --> Arcane Esprit Helmet
-赋能·诡计 --> Arcane Trickery
-Oberon Prime 头部神经光元 蓝图 --> Oberon Prime Neuroptics Blueprint
-Volt Prime 头部神经光元 蓝图 --> Volt Prime Neuroptics Blueprint
-凤凰 秘奥头盔 --> Arcane Phoenix Helmet
-布里斯提卡 Prime 下弓臂 --> Ballistica Prime Lower Limb
-Volt Prime 机体 蓝图 --> Volt Prime Chassis Blueprint
-女侯爵翠萤石 --> Marquise Veridos
-返响 秘奥头盔 --> Arcane Reverb Helmet
-爆炸戏法 --> Explosive Legerdemain
-毁灭奥罗金 --> Smite Orokin
-铁杉 秘奥头盔 --> Arcane Hemlock Helmet
-汲能榨取 --> Vampire Leech
-诸葛连弩 Prime 蓝图 --> Zhuge Prime Blueprint
-降灵追猎者 Prime 链条 --> Ninkondi Prime Chain
-诸葛连弩 Prime 枪机 --> Zhuge Prime Receiver
-诸葛连弩 Prime 一套 --> Zhuge Prime Set
-Wukong Prime 头部神经光元 蓝图 --> Wukong Prime Neuroptics Blueprint
-毁灭扩展 --> Ruinous Extension
-野蛮压制 --> Savagery
-手枪精通 --> Pistol Gambit
-毁坏微光 --> Gleaming Blight
-Ember Prime 头部神经光元 蓝图 --> Ember Prime Neuroptics Blueprint
-恒久折磨 --> Lingering Torment
-重锤射击 --> Hammer Shot
-霰弹枪弹药转换 Prime --> Primed Shotgun Ammo Mutation
-赋能·迅速 --> Arcane Velocity
-Nyx Prime 蓝图 --> Nyx Prime Blueprint
-德拉·破坏者 枪托 --> Dera Vandal Stock
-卡拉克·亡魂 蓝图 --> Karak Wraith Blueprint
-Nyx Prime 系统 蓝图 --> Nyx Prime Systems Blueprint
-摆荡钩索 --> Swing Line
-双短柄战镰 Prime 一套 --> Dual Kamas Prime Set
-精准爆发 --> Measured Burst
-护卫传送 --> Safeguard Switch
-棱晶 阴影 --> Prisma Shade
-集气城市大厅场景 --> Gas City Lobby Scene
-过度延展 --> Overextended
-保护 --> Protect
-全蚀 --> Total Eclipse
-脉冲 秘奥头盔 --> Arcane Pulse Helmet
-私法 追踪 --> Vigilante Pursuit
-净化斩 --> Purging Slash
-Mag 高斯 秘奥头盔 --> Arcane Mag Gauss Helmet
-远古融合核心 --> Ancient Fusion Core
-弗拉克斯·亡魂 右拳套 --> Furax Wraith Right Gauntlet
-螺钻打击 --> Auger Strike
-Nyx Prime 头部神经光元 蓝图 --> Nyx Prime Neuroptics Blueprint
-Rhino Prime 蓝图 --> Rhino Prime Blueprint
-稳定枪手 --> Steady Hands
-猛虎 Prime 枪机 --> Tigris Prime Receiver
-能量转换 --> Energy Conversion
-赋能·抗毒 --> Arcane Resistance
-致命洪流 --> Lethal Torrent
-战争之剑 刀片 --> War Blade
-弱点侦测 --> Detect Vulnerability
-元素沙暴 --> Elemental Sandstorm
-钢铁纤维 --> Steel Fiber
-扩充弹匣 --> Magazine Extension
-内置炸药 --> Concealed Explosives
-破灭 Prime --> Primed Ravage
-耗竭装填 --> Depleted Reload
-赫利俄斯 Prime 外壳 --> Helios Prime Carapace
-蛟龙 Prime 系统 --> Wyrm Prime Systems
-Trinity Prime 头部神经光元 蓝图 --> Trinity Prime Neuroptics Blueprint
-精神狂怒 --> Mind Freak
-狼牙 Prime 握柄 --> Fang Prime Handle
-简化 --> Streamline
-隔热 --> Insulation
-增压弹匣 --> Pressurized Magazine
-伏击光子 --> Ambush Optics
-Nyx Prime 机体 蓝图 --> Nyx Prime Chassis Blueprint
-电容 --> Capacitance
-压缩弹药 --> Shell Compression
-Loki Prime 机体 蓝图 --> Loki Prime Chassis Blueprint
-枪膛 --> Bore
-信号闪光 --> Signal Flare
-电光冲刺 --> Lightning Dash
-Mag Prime 机体 蓝图 --> Mag Prime Chassis Blueprint
-狙击特昂·破坏者 一套 --> Snipetron Vandal Set
-机动冲撞 --> Battering Maneuver
-穿刺步伐 --> Piercing Step
-狂热火球 --> Fireball Frenzy
-永恒纯净 --> Lasting Purity
-能量虹吸 --> Energy Siphon
-隐密追踪 --> Stalk
-弹匣增幅 --> Magazine Warp
-渗透 --> Infiltrate
-毒蛇螺旋 --> Coiling Viper
-压迫点 Prime --> Primed Pressure Point
-寒流来袭 --> Cold Snap
-地狱弹膛 --> Hell's Chamber
-积存毁坏 --> Stockpiled Blight
-海波斯库拉对剑 Prime 握柄 --> Nami Skyla Prime Handle
-破碎之风 --> Fracturing Wind
-猛烈爆发 --> Fulmination
-弹鼓 --> Ammo Drum
-至尊浪人 --> Sovereign Outcast
-角斗士 威猛 --> Gladiator Might
-震地冲击 --> Heavy Impact
-雷火 --> Thunderbolt
-生命之池 --> Pool Of Life
-熵数爆发 --> Entropy Burst
-致命诱惑 --> Fatal Attraction
-震撼冲拳 --> Seismic Palm
-压迫点 --> Pressure Point
-弹药改良 --> Modified Munitions
-天赋 --> Natural Talent
-箭型弹头 --> Flechette
-飞光荒疫 --> Shimmering Blight
-正义刀锋 --> Justice Blades
-败兴虐杀 --> Buzz Kill
-食人鱼 Prime 蓝图 --> Pyrana Prime Blueprint
-食人鱼 Prime 枪机 --> Pyrana Prime Receiver
-食人鱼 Prime 枪管 --> Pyrana Prime Barrel
-技巧之剑 Prime 一套 --> Destreza Prime Set
-驱逐 Grineer Prime --> Primed Expel Grineer
-驱逐 Corpus Prime --> Primed Expel Corpus
-驱逐 Infested Prime --> Primed Expel Infested
-驱逐奥罗金 Prime --> Primed Expel Orokin
-震动之拳 --> Quaking Hand
-火焰腺体 --> Flame Gland
-分裂之刃 --> Dividing Blades
-光滑翡斯敏石 --> Smooth Phasmin
-赋能·生机 --> Arcane Pulse
-骤然正义 --> Sudden Justice
-急进猛突 --> Blood Rush
-破片射击 --> Shrapnel Shot
-冷却液外泄 --> Coolant Leak
-火绫复苏 --> Ward Recovery
-火焰装填 Prime --> Primed Heated Charge
-中子星爆 --> Neutron Star
-头颅射击 --> Skull Shots
-Loki Prime 头部神经光元 蓝图 --> Loki Prime Neuroptics Blueprint
-私法 热诚 --> Vigilante Fervor
-甲龙双拳 Prime 刀刃 --> Ankyros Prime Blade
-甲龙双拳 Prime 拳套 --> Ankyros Prime Gauntlet
-玻之武杖 Prime 蓝图 --> Bo Prime Blueprint
-席瓦 & 神盾 Prime 护手 --> Silva & Aegis Prime Guard
-蚀骨寒霜 --> Vicious Frost
-锯刃 --> Jagged Edge
-护盾瓦解 --> Shield Disruption
-魔导·活力 --> Magus Vigor
-霰弹弹幕 --> Shotgun Barrage
-诈欺 秘奥头盔 --> Arcane Swindle Helmet
-角斗士 钳制 --> Gladiator Vice
-经络 秘奥头盔 --> Arcane Meridian Helmet
-传说核心 --> Legendary Fusion Core
-猛虎 Prime 枪托 --> Tigris Prime Stock
-旋压刺针 --> Spinning Needle
-狙击特昂·破坏者 枪托 --> Snipetron Vandal Stock
-野火 --> Wildfire
-灭亡 Grineer --> Bane Of Grineer
-Scimitar 飞航系统 蓝图 --> Scimitar Avionics Blueprint
-反射防御 --> Reflex Guard
-永恒之护 --> Everlasting Ward
-Ash Prime 头部神经光元 蓝图 --> Ash Prime Neuroptics Blueprint
-电流震击 --> Jolt
-守望者 Prime 枪托 --> Vectis Prime Stock
-慑人神速 --> Stunning Speed
-持久力 Prime --> Primed Continuity
-玻之武杖 Prime 握柄 --> Bo Prime Handle
-连续冲击 --> Crash Course
-再生分流 --> Vital Systems Bypass
-奇异点 --> Singularity
-杂技装甲 --> Armored Acrobatics
-致命动量 --> Lethal Momentum
-灭亡 Infested Prime --> Primed Bane Of Infested
-灭亡 Corpus Prime --> Primed Bane Of Corpus
-搬运者 Prime 蓝图 --> Carrier Prime Blueprint
-狡狐诈面 --> Vulpine Mask
-灭亡 Grineer Prime --> Primed Bane Of Grineer
-守望者 Prime 枪管 --> Vectis Prime Barrel
-战术上膛 --> Tactical Pump
-灭神 秘奥头盔 --> Arcane Menticide Helmet
-极光 秘奥头盔 --> Arcane Aurora Helmet
-月神 Prime 蓝图 --> Soma Prime Blueprint
-释放 --> Unleashed
-瓦斯托 Prime 枪管 --> Vasto Prime Barrel
-合音 秘奥头盔 --> Arcane Chorus Helmet
-瓦斯托 Prime 蓝图 --> Vasto Prime Blueprint
-飞逝熵数 --> Entropy Flight
-Saryn Prime 一套 --> Saryn Prime Set
-纵腾天际 --> Poppin' Vert
-魔导·修复 --> Magus Repair
-魔导·干扰 --> Magus Glitch
-完美平衡 --> Perfect Balance
-菌株 吸收 --> Strain Consume
-Zaw 裂罅 Mod （尚未揭开） --> Zaw Riven Mod (Veiled)
-恶狼战锤 蓝图 --> Wolf Sledge Blueprint
-魔导·超载 --> Magus Overload
-分子裂变 --> Molecular Fission
-恶狼战锤马达 --> Wolf Sledge Motor
-猛烈发狂 --> Wild Frenzy
-凝固汽油榴弹 --> Napalm Grenades
-提佩多 Prime 握柄 --> Tipedo Prime Handle
-斯特拉迪瓦 Prime 一套 --> Stradavar Prime Set
-Equinox Prime 蓝图 --> Equinox Prime Blueprint
-野马 Prime 枪管 --> Bronco Prime Barrel
-战争之剑 握柄 --> War Hilt
-Nova Prime 系统 蓝图 --> Nova Prime Systems Blueprint
-Frost Prime 蓝图 --> Frost Prime Blueprint
-野马 Prime 蓝图 --> Bronco Prime Blueprint
-星界微光 --> Astral Twilight
-速射 --> Snap Shot
-伯斯顿 Prime 枪机 --> Burston Prime Receiver
-狼牙 Prime 刀刃 --> Fang Prime Blade
-Vauban Prime 头部神经光元 蓝图 --> Vauban Prime Neuroptics Blueprint
-飞扬 Prime 星镖 --> Hikou Prime Stars
-入侵者 --> Intruder
-棱晶·安格斯壮 --> Prisma Angstrum
-菲德菈 枪托 --> Phaedra Stock
-灼痕焦点 --> Scorch
-熵数尖钉 --> Entropy Spike
-终焉风暴 --> Eleventh Storm
-Nova Prime 头部神经光元 蓝图 --> Nova Prime Neuroptics Blueprint
-反物质地雷 --> Antimatter Mine
-Nova Prime 机体 蓝图 --> Nova Prime Chassis Blueprint
-棱镜护卫 --> Prism Guard
-戏法增幅 --> Trick Mag
-Nova Prime 蓝图 --> Nova Prime Blueprint
-虚伪连结 --> Deceptive Bond
-Frost Prime 头部神经光元 蓝图 --> Frost Prime Neuroptics Blueprint
-飑风 秘奥头盔 --> Arcane Squall Helmet
-精算蓄能 --> Calculated Redirection
-充电弹头 --> Charged Shell
-净化 Corpus --> Cleanse Corpus
-炽燃钢铁 --> Searing Steel
-加速充能 --> Accelerated Deflection
-巨林冲击 --> Clashing Forest
-原始暴怒 --> Primal Rage
-天圣践踏 --> Celestial Stomp
-保障·潘塔 --> Secura Penta
-剃刀射击 --> Razor Shot
-缓动惊骇 --> Creeping Terrify
-Trinity Prime 蓝图 --> Trinity Prime Blueprint
-冷面狂怒 --> Grim Fury
-阿耶檀识 Orta 塑像 --> Ayatan Orta Sculpture
-能量导引 --> Energy Channel
-神圣清算 --> Hallowed Reckoning
-痉挛 --> Convulsion
-赋能·狂怒 --> Arcane Fury
-极速复元 --> Rapid Resilience
-瘟疫手枪 --> Pistol Pestilence
-非晶变压器 Prime --> Primed Morphic Transformer
-虚弱动能 --> Frail Momentum
-病原弹头 --> Pathogen Rounds
-赋能·神盾 --> Arcane Aegis
-瞬间冲击 --> Sudden Impact
-赋能·结果 --> Arcane Consequence
-强化刀片 --> Tempered Blade
-毁灭 Corpus --> Smite Corpus
-赋能·充沛 --> Arcane Energize
-尖牙连射 --> Fanged Fusillade
-角斗士 决心 --> Gladiator Resolve
-幽灵 --> Ghost
-白霜弹头 --> Rime Rounds
-金工火神·亡魂 --> Vulkar Wraith
-阿耶檀识 Piv 塑像 --> Ayatan Piv Sculpture
-不绝护甲 --> Negation Armor
-雷筒 --> Blunderbuss
-席芭莉丝 Prime 枪管 --> Sybaris Prime Barrel
-半人马 盾 --> Centaur Aegis
-中枢苏达强化Mod --> Cephalon Suda Augment Mod
-Banshee Prime 机体 蓝图 --> Banshee Prime Chassis Blueprint
-急冻控场 --> Chilling Grasp
-Wukong Prime 机体 蓝图 --> Wukong Prime Chassis Blueprint
-炽烈坚刃 --> Blazing Steel
-过热射击 --> Fired Up
-云暴山碎 --> Shattering Storm
-恐惧感知 --> Fear Sense
-刀锋弹舞 --> Bullet Dance
-双子蝰蛇·亡魂 蓝图 --> Twin Vipers Wraith Blueprint
-分裂膛室 --> Split Chamber
-北风 --> North Wind
-霰弹枪弹药搜集者 --> Shotgun Scavenger
-枢议·咖玛腕甲枪 --> Synoid Gammacor
-赫利俄斯 Prime 一套 --> Helios Prime Set
-绯红·布里斯提卡 --> Rakta Ballistica
-Hydroid Prime 头部神经光元 蓝图 --> Hydroid Prime Neuroptics Blueprint
-贪婪吸引 --> Greedy Pull
-席瓦 & 神盾 Prime 一套 --> Silva & Aegis Prime Set
-守护光罩 --> Sanctuary
-系绳榴弹 --> Tether Grenades
-飞行员 --> Aviator
-猎鹰俯击 --> Swooping Falcon
-百折不挠 --> Constitution
-惩击洗礼 --> Smite Infusion
-喀婆萨 Prime 库狛项圈 一套 --> Kavasa Prime Kubrow Collar Set
-拉特昂 Prime 一套 --> Latron Prime Set
-雷克斯 Prime 一套 --> Lex Prime Set
-陨蜓 Prime 一套 --> Odonata Prime Set
-恒稳枪杆 --> Gun Glide
-盖霜跳马 --> Rime Vault
-战无不克 --> Vanquished Prey
-电流长矛 --> Voltaic Lance
-灵快节拍 --> Deft Tempo
-双重连击 --> Double Tap
-搏命反扑 --> Final Act
-最终一击 --> Final Tap
-液压枪膛 --> Hydraulic Chamber
-液压弹药 --> Hydraulic Gauge
-松弛枪盖 --> Loose Hatch
-狭窄枪膛 --> Narrow Barrel
-斯特朗·亡魂 枪管 --> Strun Wraith Barrel
-夜灵 Zenurik 晶体 --> Eidolon Zenurik Lens
-技巧之剑 Prime 握柄 --> Destreza Prime Handle
-耐久强化 --> Enhanced Durability
-切换增幅 --> Holster Amp
-赋能·速攻 --> Arcane Strike
-凶恶延伸 --> Sinister Reach
-守望者 Prime 一套 --> Vectis Prime Set
-雕斩螳螂 --> Carving Mantis
-领袖 Prime --> Primed Pack Leader
-赋能·消磁 --> Arcane Nullifier
-Rhino Prime 一套 --> Rhino Prime Set
-暗杀者 Prime 一套 --> Sicarus Prime Set
-精准火枪 --> Grinloked
-赋能·胜利 --> Arcane Victory
-紧凑步伐 --> Hastened Steps
-埋伏射击 --> Lie In Wait
-螺钉步枪 Prime 枪机 --> Boltor Prime Receiver
-螺钉步枪 Prime 枪托 --> Boltor Prime Stock
-暗夜追迹者 --> Night Stalker
-枢议·赫利俄光锤 --> Synoid Heliocor
-鞘翅 系统 --> Elytron Systems
-钢铁防线强化Mod --> Steel Meridian Augment Mod
-暗影收割 --> Shadow Harvest
-银白天灾 --> Argent Scourge
-猛虎 Prime 枪管 --> Tigris Prime Barrel
-弹匣置换 --> Eject Magazine
-应急备案 --> Plan B
-炙热黄蜂 --> Burning Wasp
-尖锐子弹 --> Sharpened Bullets
-撕裂弹头 --> Ripper Rounds
-月神 Prime 枪机 --> Soma Prime Receiver
-收割螺旋 --> Reaping Spiral
-月神 Prime 枪托 --> Soma Prime Stock
-锐利刀刃 --> Sharpened Blade
-滑行扫射 --> Strafing Slide
-Scimitar 一套 --> Scimitar Set
-残盾转换 --> Surplus Diverters
-灾变连连 --> Cataclysmic Continuum
-布莱顿 Prime 一套 --> Braton Prime Set
-残酷打击 --> Relentless Assault
-席瓦 & 神盾 Prime 握柄 --> Silva & Aegis Prime Hilt
-精准弹跳 --> Calculated Spring
-彗星弹头 --> Comet Rounds
-Hydroid Prime 机体 蓝图 --> Hydroid Prime Chassis Blueprint
-雷克斯双枪 Prime 蓝图 --> Aklex Prime Blueprint
-雷克斯双枪 Prime 一套 --> Aklex Prime Set
-布里斯提卡 Prime 蓝图 --> Ballistica Prime Blueprint
-秋风落叶 --> Tranquil Cleave
-链接生命力 --> Link Vitality
-领袖 --> Pack Leader
-幸存生灵 --> Soul Survivor
-分子转化 --> Molecular Conversion
-重击者 --> Thumper
-冲刺 --> Rush
-污染弹匣 --> Infected Clip
-净化 Infested --> Cleanse Infested
-烈焰 --> Blaze
-吸取 --> Vacuum
-能量产生器 --> Energy Generator
-深红飓风 --> Scarlet Hurricane
-凶途恶径 --> Vicious Approach
-冰冻双颚 --> Frost Jaw
-电击项圈 --> Shock Collar
-收尾痛击 --> Thrash Landing
-跃动 冲击 --> Motus Impact
-空飞 俯瞰 --> Aero Vantage
-跃动 设局 --> Motus Setup
-狂风猛踢 --> Gale Kick
-跃动 信号 --> Motus Signal
-12 号甲板场景 --> Deck 12 Scene
-    </script>
+<script id="data-zh" type="text/plain">
+保障·锡斯特双枪
+匍匐靶心
+异融 Alad V 刺杀 （钥匙）
+辐射缴械
+反物质吸收
+赋能·壁垒
+赋能·冰冷
+终极·螺钉步枪
+Frost Prime 一套
+触媒连动
+定位辅助
+斯特朗·亡魂 枪机
+构造裂缝
+Mantis 一套
+酸性弹药
+夜巡燃烧弹
+类星钻体
+彗星爆发
+星云钻孔
+死亡使徒 刀刃
+极速电磁步枪 枪机
+巨浪 枪管
+巨浪 弓臂
+巨浪 枪托
+什长双枪 枪管
+Hydroid Prime 一套
+净化奥罗金
+Kappa 信标
+星形绯红石
+正直·打击
+猎人 肾上腺素
+蝰蛇·亡魂
+奥罗金荒废广场场景
+Grineer 造船厂场景
+感染舰桥场景
+月球苗圃场景
+Corpus 集气城市管道场景
+Grineer 驻扎地反应炉场景
+Corpus 冰封星球残骸场景
+夜灵 Madurai 晶体
+夜灵 Vazarin 晶体
+夜灵 Unairu 晶体
+Zephyr Prime 机体 蓝图
+Mycona 殖民地场景
+和平·高飞
+救赎者 Prime 刀刃
+觉醒双枪 Prime 枪机
+组合枪裂罅 Mod （尚未揭开）
+光谱虹吸
+恶狼战锤锤头
+恶狼战锤 一套
+奥布山谷场景
+诸葛连弩 Prime 弓身
+寒冰之力
+旋风虎击
+随机应变
+蛟龙 Prime 蓝图
+簧压刀刃
+动力转移
+奋力一掷
+宿命真理
+致命火力
+卓越防御
+能量转化
+破碎正义
+爆发装填
+极地弹仓
+步枪增幅
+残余
+有去无回
+汽化
+恶性扩散
+敌人感应
+盲怒
+步枪弹药转换
+凯旋将军·破坏者 枪管
+欧特鲁斯 Prime 刀刃
+Loki Prime 系统 蓝图
+Naramon 晶体
+协力窜升
+通晓霰弹枪
+爆裂刀刃
+陨蜓 Prime 外甲 蓝图
+回气再起
+陨蜓 Prime 系统 蓝图
+致命一击
+上升打击
+强力猛击
+极速电磁步枪 枪托
+拉斯波恩 握柄
+拉斯波恩 锤头
+拉特昂·亡魂 枪管
+火焰装填
+系统重划
+蛇发女妖·亡魂 枪机
+精算射击
+活力
+飞扬 Prime 镖袋
+收割者 Prime 蓝图
+震击 秘奥头盔
+抵近射击 Prime
+三幂之力
+Rhino Prime 头部神经光元 蓝图
+缴械纯净
+蛇发女妖·亡魂 枪托
+布里斯提卡 Prime 弓弦
+双蛇牙突
+返老还童
+挖掘
+粉碎器
+无尽苦难
+瓦斯托 Prime 一套
+阿瓦隆 秘奥头盔
+铝热焊弹
+通量 秘奥头盔
+终极·螺钉双枪
+预言 秘奥头盔
+圣洁·雷爆信镖
+裂缝打击
+火神闪击
+策略 秘奥头盔
+氯毒 秘奥头盔
+机敏 秘奥头盔
+赋能·诡计
+Oberon Prime 头部神经光元 蓝图
+Volt Prime 头部神经光元 蓝图
+凤凰 秘奥头盔
+布里斯提卡 Prime 下弓臂
+Volt Prime 机体 蓝图
+女侯爵翠萤石
+返响 秘奥头盔
+爆炸戏法
+毁灭奥罗金
+铁杉 秘奥头盔
+汲能榨取
+诸葛连弩 Prime 蓝图
+降灵追猎者 Prime 链条
+诸葛连弩 Prime 枪机
+诸葛连弩 Prime 一套
+Wukong Prime 头部神经光元 蓝图
+毁灭扩展
+野蛮压制
+手枪精通
+毁坏微光
+Ember Prime 头部神经光元 蓝图
+恒久折磨
+重锤射击
+霰弹枪弹药转换 Prime
+赋能·迅速
+Nyx Prime 蓝图
+德拉·破坏者 枪托
+卡拉克·亡魂 蓝图
+Nyx Prime 系统 蓝图
+摆荡钩索
+双短柄战镰 Prime 一套
+精准爆发
+护卫传送
+棱晶 阴影
+集气城市大厅场景
+过度延展
+保护
+全蚀
+脉冲 秘奥头盔
+私法 追踪
+净化斩
+Mag 高斯 秘奥头盔
+远古融合核心
+弗拉克斯·亡魂 右拳套
+螺钻打击
+Nyx Prime 头部神经光元 蓝图
+Rhino Prime 蓝图
+稳定枪手
+猛虎 Prime 枪机
+能量转换
+赋能·抗毒
+致命洪流
+战争之剑 刀片
+弱点侦测
+元素沙暴
+钢铁纤维
+扩充弹匣
+内置炸药
+破灭 Prime
+耗竭装填
+赫利俄斯 Prime 外壳
+蛟龙 Prime 系统
+Trinity Prime 头部神经光元 蓝图
+精神狂怒
+狼牙 Prime 握柄
+简化
+隔热
+增压弹匣
+伏击光子
+Nyx Prime 机体 蓝图
+电容
+压缩弹药
+Loki Prime 机体 蓝图
+枪膛
+信号闪光
+电光冲刺
+Mag Prime 机体 蓝图
+狙击特昂·破坏者 一套
+机动冲撞
+穿刺步伐
+狂热火球
+永恒纯净
+能量虹吸
+隐密追踪
+弹匣增幅
+渗透
+毒蛇螺旋
+压迫点 Prime
+寒流来袭
+地狱弹膛
+积存毁坏
+海波斯库拉对剑 Prime 握柄
+破碎之风
+猛烈爆发
+弹鼓
+至尊浪人
+角斗士 威猛
+震地冲击
+雷火
+生命之池
+熵数爆发
+致命诱惑
+震撼冲拳
+压迫点
+弹药改良
+天赋
+箭型弹头
+飞光荒疫
+正义刀锋
+败兴虐杀
+食人鱼 Prime 蓝图
+食人鱼 Prime 枪机
+食人鱼 Prime 枪管
+技巧之剑 Prime 一套
+驱逐 Grineer Prime
+驱逐 Corpus Prime
+驱逐 Infested Prime
+驱逐奥罗金 Prime
+震动之拳
+火焰腺体
+分裂之刃
+光滑翡斯敏石
+赋能·生机
+骤然正义
+急进猛突
+破片射击
+冷却液外泄
+火绫复苏
+火焰装填 Prime
+中子星爆
+头颅射击
+Loki Prime 头部神经光元 蓝图
+私法 热诚
+甲龙双拳 Prime 刀刃
+甲龙双拳 Prime 拳套
+玻之武杖 Prime 蓝图
+席瓦 & 神盾 Prime 护手
+蚀骨寒霜
+锯刃
+护盾瓦解
+魔导·活力
+霰弹弹幕
+诈欺 秘奥头盔
+角斗士 钳制
+经络 秘奥头盔
+传说核心
+猛虎 Prime 枪托
+旋压刺针
+狙击特昂·破坏者 枪托
+野火
+灭亡 Grineer
+Scimitar 飞航系统 蓝图
+反射防御
+永恒之护
+Ash Prime 头部神经光元 蓝图
+电流震击
+守望者 Prime 枪托
+慑人神速
+持久力 Prime
+玻之武杖 Prime 握柄
+连续冲击
+再生分流
+奇异点
+杂技装甲
+致命动量
+灭亡 Infested Prime
+灭亡 Corpus Prime
+搬运者 Prime 蓝图
+狡狐诈面
+灭亡 Grineer Prime
+守望者 Prime 枪管
+战术上膛
+灭神 秘奥头盔
+极光 秘奥头盔
+月神 Prime 蓝图
+释放
+瓦斯托 Prime 枪管
+合音 秘奥头盔
+瓦斯托 Prime 蓝图
+飞逝熵数
+Saryn Prime 一套
+纵腾天际
+魔导·修复
+魔导·干扰
+完美平衡
+菌株 吸收
+Zaw 裂罅 Mod （尚未揭开）
+恶狼战锤 蓝图
+魔导·超载
+分子裂变
+恶狼战锤马达
+猛烈发狂
+凝固汽油榴弹
+提佩多 Prime 握柄
+斯特拉迪瓦 Prime 一套
+Equinox Prime 蓝图
+野马 Prime 枪管
+战争之剑 握柄
+Nova Prime 系统 蓝图
+Frost Prime 蓝图
+野马 Prime 蓝图
+星界微光
+速射
+伯斯顿 Prime 枪机
+狼牙 Prime 刀刃
+Vauban Prime 头部神经光元 蓝图
+飞扬 Prime 星镖
+入侵者
+棱晶·安格斯壮
+菲德菈 枪托
+灼痕焦点
+熵数尖钉
+终焉风暴
+Nova Prime 头部神经光元 蓝图
+反物质地雷
+Nova Prime 机体 蓝图
+棱镜护卫
+戏法增幅
+Nova Prime 蓝图
+虚伪连结
+Frost Prime 头部神经光元 蓝图
+飑风 秘奥头盔
+精算蓄能
+充电弹头
+净化 Corpus
+炽燃钢铁
+加速充能
+巨林冲击
+原始暴怒
+天圣践踏
+保障·潘塔
+剃刀射击
+缓动惊骇
+Trinity Prime 蓝图
+冷面狂怒
+阿耶檀识 Orta 塑像
+能量导引
+神圣清算
+痉挛
+赋能·狂怒
+极速复元
+瘟疫手枪
+非晶变压器 Prime
+虚弱动能
+病原弹头
+赋能·神盾
+瞬间冲击
+赋能·结果
+强化刀片
+毁灭 Corpus
+赋能·充沛
+尖牙连射
+角斗士 决心
+幽灵
+白霜弹头
+金工火神·亡魂
+阿耶檀识 Piv 塑像
+不绝护甲
+雷筒
+席芭莉丝 Prime 枪管
+半人马 盾
+中枢苏达强化Mod
+Banshee Prime 机体 蓝图
+急冻控场
+Wukong Prime 机体 蓝图
+炽烈坚刃
+过热射击
+云暴山碎
+恐惧感知
+刀锋弹舞
+双子蝰蛇·亡魂 蓝图
+分裂膛室
+北风
+霰弹枪弹药搜集者
+枢议·咖玛腕甲枪
+赫利俄斯 Prime 一套
+绯红·布里斯提卡
+Hydroid Prime 头部神经光元 蓝图
+贪婪吸引
+席瓦 & 神盾 Prime 一套
+守护光罩
+系绳榴弹
+飞行员
+猎鹰俯击
+百折不挠
+惩击洗礼
+喀婆萨 Prime 库狛项圈 一套
+拉特昂 Prime 一套
+雷克斯 Prime 一套
+陨蜓 Prime 一套
+恒稳枪杆
+盖霜跳马
+战无不克
+电流长矛
+灵快节拍
+双重连击
+搏命反扑
+最终一击
+液压枪膛
+液压弹药
+松弛枪盖
+狭窄枪膛
+斯特朗·亡魂 枪管
+夜灵 Zenurik 晶体
+技巧之剑 Prime 握柄
+耐久强化
+切换增幅
+赋能·速攻
+凶恶延伸
+守望者 Prime 一套
+雕斩螳螂
+领袖 Prime
+赋能·消磁
+Rhino Prime 一套
+暗杀者 Prime 一套
+精准火枪
+赋能·胜利
+紧凑步伐
+埋伏射击
+螺钉步枪 Prime 枪机
+螺钉步枪 Prime 枪托
+暗夜追迹者
+枢议·赫利俄光锤
+鞘翅 系统
+钢铁防线强化Mod
+暗影收割
+银白天灾
+猛虎 Prime 枪管
+弹匣置换
+应急备案
+炙热黄蜂
+尖锐子弹
+撕裂弹头
+月神 Prime 枪机
+收割螺旋
+月神 Prime 枪托
+锐利刀刃
+滑行扫射
+Scimitar 一套
+残盾转换
+灾变连连
+布莱顿 Prime 一套
+残酷打击
+席瓦 & 神盾 Prime 握柄
+精准弹跳
+彗星弹头
+Hydroid Prime 机体 蓝图
+雷克斯双枪 Prime 蓝图
+雷克斯双枪 Prime 一套
+布里斯提卡 Prime 蓝图
+秋风落叶
+链接生命力
+领袖
+幸存生灵
+分子转化
+重击者
+冲刺
+污染弹匣
+净化 Infested
+烈焰
+吸取
+能量产生器
+深红飓风
+凶途恶径
+冰冻双颚
+电击项圈
+收尾痛击
+跃动 冲击
+空飞 俯瞰
+跃动 设局
+狂风猛踢
+跃动 信号
+12 号甲板场景
+降灵追猎者 Prime 蓝图
+诸葛连弩 Prime 枪管
+降灵追猎者 Prime 握柄
+降灵追猎者 Prime 一套
+Wukong Prime 一套
+分裂斩斧 Prime 握柄
+极恶精准
+视差瞄具
+生命力
+狙击枪弹药搜集者
+猎杀型库狛 基因印记
+镜像型库娃 基因印记
+绝路 Prime 枪管
+暴风使者
+赋能·爆发
+黄蜂 秘奥头盔
+脱离速度
+驱逐 Infested
+集气城市云霄场景
+燃烧弹头
+狙击枪弹药转换
+Loki Prime 蓝图
+穿透力
+弱点专精
+弹指瞬技
+关键延迟
+激怒
+腐坏打击
+燃烧外壳
+线圈 秘奥头盔
+预言 协约
+破裂填装
+双短柄战镰 Prime 蓝图
+母神悲歌
+拉特昂 Prime 枪管
+卡拉克·亡魂 枪管
+Zenurik 晶体
+矫捷窜升
+咬碎
+续燃
+风起云涌
+Ember Prime 一套
+蓄能重划
+狼牙 Prime 一套
+冰封护罩
+Mag Prime 一套
+释能放热
+Nekros Prime 头部神经光元 蓝图
+鹰眼
+护盾过载
+电弧线圈
+混乱领域
+狂化冲动
+亵渎清算
+溃散射击
+弹药储转箱
+悦音 Prime 一套
+真相之刃
+聚焦能量
+隼目
+野猪 Prime 蓝图
+Oberon Prime 一套
+半人马 剑刃
+扫荡锯齿
+驯象钩刃 刀刃
+链接蓄能
+狂鲨 Prime 蓝图
+棱晶·斩肉双刀
+定向汇聚
+Saryn Prime 蓝图
+重创 Prime
+赋能·觉醒
+Gamma 信标
+赋能·通牒
+德拉·破坏者 蓝图
+棱晶·奥比克斯
+玻之武杖 Prime 一套
+野猪 Prime 一套
+布里斯提卡 Prime 枪机
+螺钉步枪 Prime 一套
+斯特朗·亡魂 枪托
+斯特朗·亡魂 一套
+科加基 Prime 一套
+科加基 Prime 拳套
+Zephyr Prime 蓝图
+拉托·破坏者 一套
+拉托·破坏者 蓝图
+拉托·破坏者 枪管
+布莱顿·破坏者 一套
+Grineer 驻扎地火炮场景
+赤毒要塞裂缝场景
+Grineer 海底实验室离心机场景
+月球楼厅场景
+再启动
+Valkyr Prime 头部神经光元 蓝图
+半人马 握柄
+预言 启示
+真实惩罚
+熵数起爆
+撕裂鹤击
+空中侦察
+凯旋之爪 Prime 蓝图
+悦音 Prime 蓝图
+奥努里克斯 握柄
+抵近射击
+充能反弹
+螫刺狂棘
+霰弹枪增幅
+魔导·近点
+双短柄战镰 Prime 握柄
+正直·突波
+标记目标
+强化刀锋
+喀婆萨 Prime 项圈扣
+菌株 爆裂
+团结一致
+喀婆萨 Prime 项圈带
+赤毒王座场景
+圣殿通道场景
+牙齿毒液
+崛起之刃
+狂怒穿刺
+星形紫苋石
+启明物悬浮驱动
+轨上燃焰
+扫描物质
+动能摩擦
+扫描水生生命体
+乘空时间
+护轨器
+突击模式
+磁吸固锁
+惯性减震
+瓦斯托双枪 Prime 一套
+永恒苦痛
+灵活装甲
+杀伤计数
+赋能·偏折
+创口溃烂
+野马双枪 Prime 连接器
+朱红暴风
+致残突击
+侦察
+火焰行者
+液压准心
+剧毒飞腾
+雷射瞄具
+毁灭 Infested
+猛毒附加
+撕裂翻转
+震波
+达克拉 Prime 握柄
+驱逐 Grineer
+月神 Prime 枪管
+Mag Prime 头部神经光元 蓝图
+爆发装填 Prime
+弗拉克斯·亡魂 一套
+死亡之眼
+近战裂罅 Mod （尚未揭开）
+腐蚀投射
+手枪裂罅 Mod （尚未揭开）
+重创
+神威·勇猛
+蓄力装填
+潮汐涌净
+穿甲口径
+复燃 秘奥头盔
+凝胶爆破
+动能碰撞
+雷电米特尔
+画龙点睛
+活泼静电
+Ash Prime 机体 蓝图
+猛虎 Prime 蓝图
+紧急后果
+不屈不挠
+Ash Prime 系统 蓝图
+Mag Prime 系统 蓝图
+棱晶·葛拉卡达
+全面驱动
+守望者 Prime 枪机
+自动扳机
+复原装甲
+勇气·恶龙
+串联弹匣
+连牙追袭
+赋能·优雅
+捶击
+构造强化
+玻之武杖 Prime 饰物
+德拉·破坏者 枪机
+甲龙双拳 Prime 一套
+卑劣加速
+弹头扩散
+旋风
+毒抗
+冲击干扰
+重口径
+穿甲伤害
+持久力
+感染弹匣
+电击奇兵
+川流不息
+降速暴击
+蛟龙 Prime 外壳
+治愈之焰
+深渊之火
+棱晶·特拉
+破碎声波
+帕里斯 Prime 一套
+Trinity Prime 一套
+私法 军备
+席芭莉丝 Prime 蓝图
+欺幻魔灯
+布里斯提卡 Prime 一套
+正直·狂怒
+正直·空无
+正直·节奏
+神威·气力
+正直·鬼魅
+华彩刀剑
+驱逐奥罗金
+角斗士 圣盾
+抵消正义
+发光的黄道宝石
+食人鱼噬咬
+Wukong Prime 蓝图
+Wukong Prime 系统 蓝图
+诸葛连弩 Prime 弓弦
+镀金真相
+链接纤维
+顶天立地
+血色万柳
+不朽意志
+钢铁凤凰
+尖锐之风
+稳定
+步枪弹药搜集者
+加速
+红晶枪管
+破甲
+抵消
+生长怪奇
+技巧之剑 Prime 刀刃
+机甲 强化
+机甲 脉冲
+重铁雨落
+原木冲击
+污染水螅
+盘旋鞭笞
+重生
+雷克斯双枪 Prime 连接器
+灵敏扳机
+预言 神密
+Cressa 的驻扎处场景
+仲裁者法庭场景
+Grineer 森林工业场景
+Banshee Prime 系统 蓝图
+箭矢转换
+Hydroid Prime 蓝图
+急速偏斜
+传染性注射
+慧黠斩剃
+Equinox Prime 系统 蓝图
+曲翼枪械裂罅 Mod （尚未揭开）
+帕里斯 Prime 蓝图
+震地共鸣
+多流抽击
+结霜侵蚀
+集气城市中央降落场景
+月球 Unairu 晶体
+牧羊人
+奥罗金塔撤离点场景
+致命效率
+正直·熔炉
+瓦斯托双枪 Prime 蓝图
+瓦斯托双枪 Prime 连接器
+毒染套管
+昂克的指挥所场景
+通量步枪超载
+奥努里克斯 刀刃
+凯旋之爪 Prime 一套
+消音
+目标入定
+磁浮
+净化 Grineer
+加剧反射
+狩猎
+欧特鲁斯 Prime 蓝图
+恶怨厅
+毁灭 Grineer
+烈焰风暴
+灭亡 Corpus
+嗜血 狂暴
+振奋劫掠
+松弛弹匣
+生命打击
+翻筋斗
+帕里斯 Prime 弓身
+幸运射击
+带电枪管
+极限弹容
+救星诱饵
+缠旋风切
+灭亡奥罗金 Prime
+保温服
+腐败弹匣
+战术性撤退
+光明纯净
+冰冷疾风
+破片弹头
+血色刃缘
+和平·追寻者
+Mesa Prime 蓝图
+Equinox Prime 头部神经光元 蓝图
+救赎者 Prime 蓝图
+正直·尖刺
+提佩多 Prime 蓝图
+锯齿边缘
+火焰防护
+量子切割器·破坏者
+苦痛·德特昂
+减震器
+野马 Prime 枪机
+异融 Alad V 导航坐标
+伯斯顿 Prime 蓝图
+精湛快手
+簧压猎箭
+裂隙洪流
+伯斯顿 Prime 枪托
+一剑在手
+机动装填
+飞扬 Prime 蓝图
+催泪毒雾
+串联弹匣 Prime
+庇护
+纵横双子
+破裂
+先锋 秘奥头盔
+巨人促进剂
+川流不息 Prime
+凯旋将军·破坏者 蓝图
+手枪弹药转换 Prime
+潘德拉冈 秘奥头盔
+棱晶·真理巨剑
+残响共鸣
+弹道靶心
+Volt Prime 蓝图
+穿刺抛体
+集气城市 Alad 的实验室场景
+重装火力
+驱逐 Corpus
+Ember Prime 机体 蓝图
+赋能·节奏
+Madurai 晶体
+Unairu 晶体
+狡诈窜升
+坚忍窜升
+耗弱链接
+力量窜升
+速度窜升
+圣域爆发
+匿踪窜升
+Rhino Prime 机体 蓝图
+切割刃缘
+碎铁弹片
+野马双枪 Prime 一套
+传染蔓延
+赋能·灵敏
+刺骨战吼
+搬运者 Prime 一套
+静谧无踪
+达克拉 Prime 一套
+贪夺触角
+钻石皮肤
+德拉·破坏者 一套
+毒素数列
+拉特昂·亡魂 蓝图
+拉特昂·亡魂 枪机
+拉特昂·亡魂 枪托
+拉特昂·亡魂 一套
+侵略领土
+挥击
+猛扑
+磨锋之爪
+双子蝰蛇·亡魂 连接器
+双子蝰蛇·亡魂 枪机
+双子蝰蛇·亡魂 一套
+侦敌雷达
+Nekros Prime 机体 蓝图
+赋能·卫士
+赋能·主武充能
+迅敏动量
+战斗教条
+赋能·刀刃充能
+近战指引
+Atlas Prime 机体 蓝图
+死亡魔方 Prime 外壳
+死亡魔方 Prime 头部
+铁钩手甲 Prime 拳套
+死亡魔方 Prime 蓝图
+死亡魔方 Prime 一套
+冰冷刃缘
+肢解
+Limbo Prime 系统 蓝图
+溜之大吉
+脚底抹油
+Ivara Prime 头部神经光元 蓝图
+Ivara Prime 机体 蓝图
+Ivara Prime 系统 蓝图
+苍鹰 Prime 蓝图
+苍鹰 Prime 一套
+轻灵月神双枪 Prime 一套
+轻灵月神双枪 Prime 连接器
+苍鹰 Prime 枪托
+轻灵月神双枪 Prime 枪机
+格拉姆 Prime 握柄
+剑风 Prime
+庇护焚炉
+赫利俄斯 Prime 蓝图
+极限速度
+冰风暴
+飓风海怪
+卡拉克·亡魂 枪机
+灵枢 圆盘
+Vazarin 晶体
+沉没之爪
+生命转换
+增幅线圈
+瓦斯托 Prime 枪机
+灼热跳跃
+战利品探测器
+永续力场
+中空子弹
+Scimitar 引擎 蓝图
+铁甲冲锋
+Veil 的拘束台场景
+魔导·驱动
+快速装填
+菌株 热毒
+曲翼枪械行家
+狂堆速
+猛爆致病
+福尔图娜场景
+提佩多 Prime 饰物
+斯特拉迪瓦 Prime 枪机
+狙击特昂·破坏者 枪管
+毒蝎 秘奥头盔
+蛟龙 Prime 头部
+迅敏视觉
+目标感应
+阿耶檀识 Valana 塑像
+灭亡 Infested
+电击触点
+合成燃气炮 枪管
+冲刺提升
+合成燃气炮 枪托
+狂怒标枪
+雷克斯 Prime 蓝图
+幽暗枯竭
+集气城市元素精炼场景
+地狱火
+精准弹药
+氩晶装甲
+Corpus虚空钥匙
+飞扬 Prime 一套
+弹头导引
+熔岩冲击
+欧特鲁斯 Prime 握柄
+收割者 Prime 刀刃
+撕裂打击
+霰弹扩充
+自爆
+簧压膛室
+加速冲击
+分裂斩斧 Prime 蓝图
+污秽弹药
+过激真相
+转轮弹匣
+一击必杀
+内置触媒
+熔岩弹膛
+弹跳
+卸能打击
+风暴 秘奥头盔
+剑风
+抗爆覆甲
+泪滴形石青
+霰弹枪裂罅 Mod （尚未揭开）
+魔导·韵律
+神威·勇武
+神威·狩猎
+神威·凯旋
+魔导·滋养
+正直·暗影
+Ember Prime 系统 蓝图
+Frost Prime 机体 蓝图
+Rhino Prime 系统 蓝图
+Ember Prime 蓝图
+侵蚀毁坏
+致命数列
+热病打击
+锯齿弹链
+本质 秘奥头盔
+飞蝗 秘奥头盔
+皇家节奏
+弧度心智晶核
+棱晶·蛇发女妖
+头脑风暴
+正午
+散射正义
+残暴浪潮
+漏斗状云
+Ash Prime 蓝图
+什长双枪 枪机
+毁坏毒素
+喀婆萨 Prime 库狛项圈 蓝图
+阿耶檀识青蓝星
+致死加速
+菲德菈 枪管
+盗贼天赋
+弗拉克斯·亡魂 左拳套
+非凡技巧
+阿耶檀识琥珀星
+长时瘫痪
+步枪裂罅 Mod （尚未揭开）
+高射炮击
+贯彻始终
+持续火力
+奚落守护
+冰冷雪崩
+Vay Hek 坐标频率三角仪
+牵绳机雷
+气息疗愈
+质子 喷射
+协议覆盖
+裂隙避难所
+马谢特砍刀·亡魂
+火绫守护
+普罗沃·破坏者
+化像之道
+感染毒雾
+收割者 Prime 一套
+献祭之辉
+Vauban Prime 蓝图
+搬运者 Prime 外壳
+充量弹容
+磁吸释放
+甲龙双拳 Prime 蓝图
+Inaros 古墓场景
+野猪 Prime 枪管
+Oberon Prime 机体 蓝图
+填弹上膛
+月动球竞技场场景
+席瓦 & 神盾 Prime 刀刃
+赋能·保卫者
+螺钉步枪 Prime 蓝图
+快速充能
+席芭莉丝 Prime 一套
+Oberon Prime 系统 蓝图
+苍鹰 Prime 枪机
+毁灭 Infested Prime
+舍杜 枪管
+舍杜 枪机
+毁灭 Corpus Prime
+Sentient 喷泉场景
+舍杜 一套
+舍杜 机体
+虚空隐匿
+小队治愈
+截面密度
+热流涌动
+涌流突进
+指挥家
+蓄积长鞭
+心形夜石
+光子续能器
+救赎者 Prime 一套
+低温外壳
+湮灭弹头
+战位
+反制系统
+祭血锻造
+野火涌流
+Sentient 盆地场景
+Sentient 阳台场景
+无尽催眠曲
+魔导·触媒
+迦伦提恩 Prime 蓝图
+空中制霸
+充沛射击
+聚精滑翔
+恶毒弹匣
+德拉·破坏者 枪管
+平衡配重
+反重力榴弹
+快速休整
+欧特鲁斯 Prime 一套
+狂化突击
+跃浪好手
+蛇发女妖的狂热
+Volt Prime 一套
+伊舍兄弟之石
+Banshee Prime 头部神经光元 蓝图
+电光脉冲
+啃咬压制
+嗅索取物
+凯旋将军·破坏者 枪机
+保障·勒克塔
+圣使 系统
+圣使 机翼
+圣使 外甲
+圣使 一套
+鞘翅 外甲
+鞘翅 一套
+刺影 系统 蓝图
+刺影 机翼 蓝图
+刺影 外甲 蓝图
+刺影 一套
+阿耶檀识 Vaya 塑像
+佩兰数列强化Mod
+新世间强化Mod
+均衡仲裁者强化Mod
+招福
+猫眼
+宠物治疗套件
+收割者 Prime 握柄
+暗杀者 Prime 枪管
+布莱顿 Prime 枪管
+净化烈焰
+能量超载
+鞘翅 机翼
+顽皮
+猛虎 Prime 一套
+护盾充能
+绯红·暗黑匕首
+静电释放
+痛苦阈值
+帕里斯 Prime 弓弦
+游离双管
+蛇发女妖·亡魂 蓝图
+氩晶瞄具
+爆散消亡
+暗杀者 Prime 枪机
+Mantis 引擎 蓝图
+准确射手
+战刃 Prime 刀刃
+蚀能磁触
+卡拉克·亡魂 一套
+重击巨锤 Prime 一套
+赤红狂舞
+史提托双枪 Prime 蓝图
+史提托双枪 Prime 枪管
+深层冷冻
+史提托双枪 Prime 枪机
+体魄
+螺钉双枪 Prime 枪机
+帕里斯 Prime 上弓臂
+螺钉双枪 Prime 蓝图
+席瓦 & 神盾 Prime 蓝图
+分裂斩斧 Prime 刀刃
+悦音 Prime 枪管
+Mag Prime 蓝图
+弗拉克斯·亡魂 蓝图
+Frost Prime 系统 蓝图
+冰冷跃动
+碎裂冲击
+非晶变压器
+赫利俄斯 Prime 头部
+帕里斯 Prime 下弓臂
+三重连击
+恶毒猛禽
+幽影之护
+空尖弹
+不朽打击
+延烧数列
+Xiphos 机身 蓝图
+Mantis 机身 蓝图
+尖刃弹头
+撕裂
+Mantis 飞航系统 蓝图
+膛线
+赋能·复原
+Scimitar 机身 蓝图
+快速收回
+避雷针
+赋能·温暖
+钢铁充能
+狂暴化
+未完之刺
+圣洁·执法者
+电磁脉冲场
+抚慰之风
+金属纤维
+能量扩散
+薇娜丽的护卫
+正直·特洛伊
+致盲掠夺
+恐惧屏障
+棱晶·葛恩火枪
+Equinox Prime 机体 蓝图
+斯特拉迪瓦 Prime 蓝图
+勇气·玛瑞火枪
+锯刃弹头
+Xiphos 引擎 蓝图
+Titania Prime 头部神经光元 蓝图
+鲮鲤剑 Prime 刀刃
+鲮鲤剑 Prime 一套
+Titania Prime 蓝图
+节流降耗
+Sentient 解剖刀
+Titania Prime 一套
+责难裁决
+肉弹发射
+炽燃劫掠
+迷尘丰益
+巡航速度
+高效光能炮
+炮台速度
+高效火炮
+弩炮测距
+快速锁定
+火炮速度
+净化 Grineer Prime
+净化 Infested Prime
+净化 Corpus Prime
+净化奥罗金 Prime
+增生突变
+晕眩弹药
+显形孢子
+狂化震怒
+碎石堆叠
+精准打击
+致命机动
+Banshee Prime 蓝图
+激冷装填
+流线外形
+漂移接触
+Valkyr Prime 机体 蓝图
+低温弹头 Prime
+半人马 一套
+奥努里克斯 一套
+驯象钩刃 一套
+治愈归复
+黑鸦 一套
+践踏加固
+拉斯波恩 一套
+残酷组合
+西诺斯 Prime 蓝图
+西诺斯 Prime 下弓臂
+西诺斯 Prime 上弓臂
+西诺斯 Prime 弓身
+异况超量
+病毒风暴
+超速击杀
+长时苦难
+手枪弹药搜集者
+蛟龙 Prime 一套
+Naramon 转换核心
+Vazarin 转换核心
+复仇亡灵
+星界剖解
+Ergo 的会议室场景
+机动瞄准
+冲击预感
+夜灵平野场景
+撕碎射击
+伯斯顿 Prime 枪管
+滞痕冰浪
+Volt Prime 系统 蓝图
+达克拉 Prime 刀刃
+战刃 Prime 圆盘
+阿耶檀识 Ayr 塑像
+延伸
+驯象钩刃 护手
+聚精会神
+重型弹头
+卡拉克·亡魂 枪托
+Madurai 转换核心
+毒素弹幕
+顶级掠食者
+霰弹枪弹药转换
+算计赢家
+超越推进
+感染者阻抗
+Hydroid Prime 系统 蓝图
+动物本能 Prime
+贪夺穹顶
+质子 脉动
+集气城市升降机场景
+三伏天场景
+震波驱动器
+同化
+战刃 Prime 一套
+分裂斩斧 Prime 一套
+终极·螺钉拐刃
+拉特昂 Prime 枪机
+拉特昂 Prime 枪托
+雷克斯 Prime 枪管
+Grineer 森林工厂场景
+心形灵息石
+绝壁强攻
+苏达数据空间场景
+席芭莉丝 Prime 枪机
+失衡护盾
+史提托双枪 Prime 一套
+诡计之刃 一套
+逐电 一套
+钢刃步枪 枪管
+钢刃步枪 一套
+逐电 枪机
+诡计之刃 刀刃
+钢刃步枪 枪机
+诡计之刃 枪机
+诡计之刃 枪托
+诡计之刃 枪管
+钢刃步枪 枪托
+逐电 枪管
+Corpus 船舰库场景
+Corpus 舰桥场景
+Corpus 船舰追踪炮场景
+冷冻光束步枪·破坏者
+红晶枪管 Prime
+Inaros Prime 一套
+Inaros Prime 机体 蓝图
+Inaros Prime 头部神经光元 蓝图
+Inaros Prime 蓝图
+Inaros Prime 系统 蓝图
+猎豹 Prime 枪托
+凯洛斯特 Prime 握柄
+凯洛斯特 Prime 一套
+猎豹 Prime 一套
+猎豹 Prime 枪管
+猎豹 Prime 枪机
+猎豹 Prime 蓝图
+凯洛斯特 Prime 蓝图
+凯洛斯特 Prime 刀刃
+私法 补给
+月落乌啼
+布莱顿 Prime 枪托
+达克拉 Prime 蓝图
+心志偏狭
+Xiphos 飞航系统 蓝图
+坚守
+战刃 Prime 蓝图
+弱点专精 Prime
+反射拔枪
+史提托双枪 Prime 连接器
+灭亡奥罗金
+Hunhow 的数据空间场景
+致残枪弹
+Oberon Prime 蓝图
+搜刮者
+手枪弹药转换
+剧毒螫刺
+Harrow 神庙场景
+Amaryn 的避难所场景
+色键场景
+菲德菈 一套
+西诺斯 Prime 弓弦
+西诺斯 Prime 一套
+Valkyr Prime 蓝图
+Valkyr Prime 一套
+凯旋之爪 Prime 爪刃
+赏金猎人
+锁定目标
+觅心猎手
+忠实搭档
+狂暴尚武
+果断裁决
+回转尖峰
+辅助动力
+夜灵晶体 蓝图
+微光利爪
+搜集
+神枪手
+分裂编织
+穿刺弹药
+凤凰新生
+电冲弹药
+幼体爆发
+弧刃回天
+人群驱散
+合成燃气炮 枪机
+陨蜓 Prime 蓝图
+无明制裁
+全面接触
+医疗射线
+电磁屏障
+凯旋将军·破坏者 一套
+加力燃烧
+手枪精通 Prime
+勇气·海克
+液压枪管
+Saryn Prime 头部神经光元 蓝图
+海波斯库拉对剑 Prime 刀刃
+皇家拐刃 Prime 握柄
+角斗士 灵巧
+预言 通灵
+牺牲
+猎人 追踪
+猎人 命令
+野猪 Prime 枪机
+Omega 信标
+蜕化再生
+野猪 Prime 枪托
+蛇发女妖·亡魂 枪管
+科加基 Prime 靴子
+螺钉双枪 Prime 一套
+螺钉双枪 Prime 连接器
+螺钉双枪 Prime 枪管
+布莱顿·破坏者 蓝图
+Limbo Prime 一套
+分裂槌音
+梯型异源石
+能量果汁
+重岩者 胸腔
+殁世机甲 压迫点
+殁世机甲 生命力
+吸血噬咬
+殁世机甲 滑流
+浓酸唾液
+内寄生向量
+殁世机甲 推进器
+损坏的殁世机甲 武器舱
+多面提亚美凝石
+损坏的殁世机甲 引擎
+轰炸落地
+阿耶檀识 Sah 塑像
+血色面纱强化Mod
+狡诈面貌
+反射
+撕裂之风
+黑鸦 枪机
+高贵踏频
+热磁弹药
+黑鸦 枪托
+动力回弹
+垂死挣扎
+招架
+暗杀者 Prime 蓝图
+蛇发女妖·亡魂 一套
+飞升技巧
+高压粉碎
+狼牙 Prime 蓝图
+终结闪光
+凶恶终结
+Xiphos 一套
+高压电流
+Vauban Prime 机体 蓝图
+充能电幕
+调节跳跃
+聚焦加速
+冲击巨力
+拉特昂 Prime 蓝图
+布莱顿 Prime 蓝图
+积秽骁龙
+侍刃 Prime 握柄
+复元
+侍刃 Prime 一套
+弱点感应
+Valkyr Prime 系统 蓝图
+合成燃气炮 一套
+破碎的战争之剑 一套
+凯旋之爪 Prime 手套
+死亡使徒 一套
+极速电磁步枪 一套
+巨浪 一套
+什长双枪 一套
+广域之视
+电压数列
+野马双枪 Prime 蓝图
+低温弹头
+寂静炮组
+菲德菈 枪机
+悦音 Prime 枪机
+瞬时坚毅
+震荡弹头
+嚎声
+驯象钩刃 握柄
+搬运者 Prime 系统
+致命匿杀
+轻羽箭
+加载弹容
+松弛枪膛
+闪避装甲
+纳米涂覆
+重点防御
+制导弹药
+斯特朗·亡魂 蓝图
+巨大石者
+旋刃飞刀 Prime 蓝图
+旋刃飞刀 Prime 一套
+希芙 刀刃
+希芙 散热片
+希芙 一套
+轰隆石者
+狙击特昂·破坏者 蓝图
+猎人骨锯
+极速电磁步枪 枪管
+毒素抵抗
+海波斯库拉对剑 Prime 一套
+皇家拐刃 Prime 一套
+赫利俄斯 Prime 系统
+延展
+热病打击 Prime
+神威·触染
+狂鲨 Prime 一套
+神威·流行病
+Mirage Prime 系统 蓝图
+Mirage Prime 蓝图
+持续火力 Prime
+机甲 充能
+合成 纤维
+消音器
+重击巨锤 Prime 锤头
+践踏
+合金钻头
+盗贼大师
+冷冻包覆
+爆发质量
+提佩多 Prime 一套
+斩铁
+天启异象
+守望者 Prime 蓝图
+动物本能
+灼热光束
+哈库那瞄准镜
+集气城市走道场景
+集气城市死亡出口场景
+空气动力
+Atlas Prime 一套
+铁钩手甲 Prime 刀刃
+铁钩手甲 Prime 一套
+铁钩手甲 Prime 蓝图
+殁世机甲 蓄能重划
+损坏的殁世机甲武器 枪管
+损坏的殁世机甲武器 一套
+损坏的殁世机甲武器 枪机
+感染咬噬
+瘫痪孢子
+月刃回溯
+铁甲回溯
+同化授粉
+顶级花式
+喉骨刃者 倒刺
+重岩者 壳甲
+以硬碰硬
+雾化尾迹
+重岩者 唾液
+损坏的殁世机甲武器 枪托
+殁世机甲 剑风
+殁世机甲 持久力
+弧面型栓子凝石
+殁世机甲 钢铁纤维
+喉骨刃者 脊刺
+损坏的殁世机甲 一套
+高纯聚合荧石
+疫病尖刺
+肉碾虫 巨颚
+损坏的殁世机甲 机舱
+殁世机甲 燃料补给
+肉碾虫 针刺
+月刃刺冲
+生存本能
+火卫二地下场景
+火卫二魔胎之境场景
+Nezha Prime 蓝图
+关刀 Prime 蓝图
+连击杀手
+奴仆契约
+暴击涌流
+定理·缓和
+孢丝感染枪 蓝图
+殁世机甲 增效
+定理·感染
+疆南星刺 蓝图
+易爆速返
+混沌利爪
+疆南星刺 护手
+疆南星刺 一套
+孢丝感染枪 一套
+残差·电击
+烈焰风暴 Prime
+猛烈爆发 Prime
+骨骸寡妇 一套
+骨骸寡妇 武器舱
+骨骸寡妇 外壳
+置灵者 枪托
+送葬者 枪管
+殁世机甲 敌人感应
+送葬者 枪托
+殁世机甲 训戒
+送葬者 一套
+骨骸寡妇 机舱
+虚空锐将 一套
+殁世机甲 飞行员
+阿耶檀识 Hemakara 塑像
+棱晶·什长双枪
+塞多 枪管
+塞多 枪机
+塞多 一套
+Mirage Prime 机体 蓝图
+科加基 Prime 蓝图
+黄蜂螫刺
+席芭莉丝 Prime 枪托
+矿石凝视
+私法 进攻
+魔导·充盈
+猎人 协力
+割裂羽翼
+布莱顿·破坏者 枪机
+布莱顿·破坏者 枪托
+花开怪奇
+Chroma Prime 一套
+防护型库狛 基因印记
+绝路 Prime 一套
+格拉姆 Prime 蓝图
+幽灵伏击
+Hunhow 大厅场景
+月球拘禁场景
+落银树庭圣所场景
+合成 反射
+合成 解构
+取回
+技法 强化
+崩毁浩劫
+旋刃飞刀 Prime 镖袋
+晶管屏障
+填弹加速
+希芙 蓝图
+希芙 握柄
+Banshee Prime 一套
+Vauban Prime 一套
+Mesa 的华尔兹
+重击巨锤 Prime 蓝图
+Inaros 之沙
+重击巨锤 Prime 握柄
+Vauban Prime 系统 蓝图
+炼狱轰击
+死亡使徒 握柄
+特斯拉电容
+导路龙骸
+持久圣约
+刀翼闪击
+魔导·游云
+复仇
+邪恶蓄力
+均衡点
+搬运者 Prime 头部
+最终先驱
+伯斯顿 Prime 一套
+Loki Prime 一套
+Nova Prime 一套
+Nyx Prime 一套
+月神 Prime 一套
+迅速抽换
+剧毒升腾
+肾上腺激素
+盲目射击
+屠戮换弹
+Saryn Prime 机体 蓝图
+猎人 战备
+狂鲨 Prime 枪机
+流星弹药
+赋能·加速
+预言 探求
+片刻喘息
+永恒战意
+螺钉步枪 Prime 枪管
+角斗士 猛突
+私法 活力
+布莱顿 Prime 枪机
+溢能感应
+纵观全局
+杀戮奖励
+护盾速充
+步枪弹药转换 Prime
+剃刀弹药
+赋能·蜘蛛
+赋能·动量
+赋能·精确
+冷静与疯狂
+和平挑衅
+Saryn Prime 系统 蓝图
+Delta 信标
+侍刃 Prime 蓝图
+痊愈
+侍刃 Prime 刀刃
+火成碎流
+通电刀刃
+Zephyr Prime 头部神经光元 蓝图
+Zephyr Prime 一套
+狼鱼咬咬
+皇家拐刃 Prime 蓝图
+狂鲨 Prime 枪管
+皇家拐刃 Prime 刀刃
+纯净之风
+惩戒
+火线电击
+Ivara Prime 一套
+数学证明片段
+强化箭袋
+不竭贪婪
+强力切换
+乏能迅敏
+翻滚防护
+枪口闪焰
+Grineer 森林水泵场景
+神威·力量
+复仇真相
+Mirage Prime 头部神经光元 蓝图
+Teshin 的隐居处场景
+布里斯提卡 Prime 上弓臂
+双重弹头
+灵枢 刀刃
+过载弹匣
+海波斯库拉对剑 Prime 蓝图
+声波提升
+和平·电闪
+觉醒双枪 Prime 一套
+觉醒双枪 Prime 连接器
+魔导·热熔
+坚决专注
+魔导·防火墙
+魔导·穿破
+枯竭诅咒
+斯特拉迪瓦 Prime 枪管
+斯特拉迪瓦 Prime 枪托
+修补套件
+空飞 边际
+反重力阵列
+空飞 灵巧
+库娃的优雅
+静态力场
+牵引光束
+质子 猛扑
+通风小子俱乐部场景
+集气城市玄关底层场景
+集气城市走廊场景
+集气城市调节器场景
+膛室 Prime
+陨蜓 Prime 机翼 蓝图
+狂暴追猎
+夜灵 Naramon 晶体
+流星撞击
+狂鲨 Prime 枪托
+魔导·外壳
+魔导·振奋
+猎人 复元
+守护者
+Mirage Prime 一套
+庇护烟幕
+光谱切割器·破坏者 握柄
+光谱切割器·破坏者 蓝图
+碎裂爆破
+封隙量子
+束缚力场
+棱晶·双子小精灵
+天界黄昏
+充电弹头 Prime
+觉醒双枪 Prime 枪管
+带电子弹
+粒子冲撞
+熄扰脉冲
+覆壳弹药
+绝路 Prime 枪机
+迦伦提恩 Prime 刀刃
+格拉姆 Prime 一套
+圣洁·猛虎
+绝路 Prime 枪托
+Nekros Prime 蓝图
+Trinity Prime 系统 蓝图
+手枪增幅
+有备而来
+Titania Prime 机体 蓝图
+科林斯 Prime 枪托
+科林斯 Prime 蓝图
+Titania Prime 系统 蓝图
+殁世机甲 聚精会神
+狂暴
+黄水晶解毒剂
+病囊飞刃 下皮层
+Atlas Prime 系统 蓝图
+Atlas Prime 头部神经光元 蓝图
+Atlas Prime 蓝图
+死亡魔方 Prime 系统
+食人鱼 Prime 一套
+残酷无息
+割魂火圈
+苏普拉·破坏者
+Limbo Prime 蓝图
+布莱顿·破坏者 枪管
+破灭
+技巧之剑 Prime 蓝图
+万能钥匙
+视野之外
+Khra
+Lohk
+血易弹药
+失效保险
+血易能量
+Xata
+分裂飞行
+格拉姆 Prime 刀刃
+伏打电能
+Limbo Prime 机体 蓝图
+阿耶檀识 Anasa 塑像
+拉托·破坏者 枪机
+技法 猛袭
+技法 引力
+技法 连带
+合成 充能
+机甲 超载
+星辰分裂
+旋刃飞刀 Prime 刀刃
+狙击特昂·破坏者 枪机
+能量力场
+黄道碎裂
+空中推进
+重生 Prime
+步枪才能
+预言 契约
+闪现急袭
+长吻
+狂怒
+剧毒灾害
+雷克斯 Prime 枪机
+斩杀悬浮板
+Mesa Prime 头部神经光元 蓝图
+救赎者 Prime 握柄
+关键焦点
+弹链
+希图斯场景
+离子注入
+恶狼战锤握柄
+Equinox Prime 一套
+殁世机甲 震波
+殁世机甲 延伸
+格拉努虚空场景
+治愈羽箭
+殁世机甲 充能
+植物学家
+连击狂怒
+关刀 Prime 一套
+毒芽 Prime 一套
+残差·燃沸
+孢丝感染枪 枪机
+殁世机甲 川流不息
+暴怒寄生
+残差·毒血
+残差·恶嗅
+马赫崩毁
+易爆反弹
+孢丝感染枪 枪管
+阿耶檀识 Kitha 塑像
+定理·触染
+置灵者 枪机
+送葬者 枪机
+虚空锐将 引擎
+殁世机甲 预言
+骨骸寡妇 引擎
+塞多 枪托
+适应
+神射手
+献出力量
+谨慎射击
+反转脉冲
+苍鹰 Prime 枪管
+轻灵月神双枪 Prime 枪管
+Grendel 系统定位装置
+光谱切割器·破坏者 机体
+光谱切割器·破坏者 一套
+毁灭 Grineer Prime
+Sentient 大厅场景
+Grendel 机体定位装置
+火势抑制
+离子燃烧
+战斗锻造
+治愈玻片
+掠夺
+包覆游云
+急流
+黑鸦 枪管
+无电流飞跃
+翼膜
+棱晶·空刃
+野马 Prime 一套
+星体切砍
+Zephyr Prime 系统 蓝图
+二元性状
+探推－挽拉
+高效传输
+集气城市物流部门上层场景
+月球 Zenurik 晶体
+天青石解毒剂
+辰砂解毒剂
+暴露鱼叉
+高效光束
+同伴武器裂罅 Mod (尚未揭开)
+绿宝石解毒剂
+细心瞄准
+月球晶体 蓝图
+月球 Madurai 晶体
+黄玉解毒剂
+紫水晶解毒剂
+月球 Vazarin 晶体
+月球 Naramon 晶体
+赋能·坦克
+赋能·枪炮
+病囊飞刃 蓝图
+病囊飞刃 刀刃
+病囊飞刃 一套
+集中箭矢
+Ash Prime 一套
+Limbo Prime 头部神经光元 蓝图
+能量转移
+笑面型库娃 基因印记
+Chroma Prime 蓝图
+阿耶檀识 Zambuka 塑像
+自动破解
+无迹可寻
+Vome
+Fass
+双子蝰蛇·亡魂 枪管
+女侯爵赤色水晶
+突击型库狛 基因印记
+匿踪型库狛 基因印记
+泪滴形填充细石
+氮气喷射
+极限加速
+和平·电充
+Mesa Prime 一套
+Mesa Prime 系统 蓝图
+Mesa Prime 机体 蓝图
+魔导·复位
+侵入停滞
+超量打击
+捕食者
+锥型推进器
+撕裂装填
+尖幡 蓝图
+列阵归队
+压制者 蓝图
+追踪齐射
+响应风暴
+枢议·重力奇点拟成枪
+绝路 Prime 蓝图
+Trinity Prime 机体 蓝图
+成长之力
+血易生命
+Jahu
+Ris
+Netra
+Ivara Prime 蓝图
+轻灵月神双枪 Prime 蓝图
+舍杜 握柄
+光谱切割器·破坏者 枪管
+噬血型库娃 基因印记
+毁灭奥罗金 Prime
+Grendel 头部神经光元定位装置
+前装光能炮
+弹药漩涡
+Lotus 大厅场景
+削甲手里剑
+电击加速
+赋能·复仇者
+Nekros Prime 一套
+赋能·幻象
+Nekros Prime 系统 蓝图
+Chroma Prime 系统 蓝图
+终末使者
+赋能·愤怒
+Chroma Prime 机体 蓝图
+迦伦提恩 Prime 一套
+Chroma Prime 头部神经光元 蓝图
+觉醒双枪 Prime 蓝图
+菌株 感染
+迅逃夭
+虚空虹洞
+死亡绽放
+Sentient 祭坛场景
+席尔火枪
+迦伦提恩 Prime 握柄
+冷抵步
+怨怒报复
+魔导·封锁
+寻猎型库狛 基因印记
+绯红·西诺斯
+瞬满
+双短柄战镰 Prime 刀刃
+平稳滑步
+补愈射击
+铁甲翱翔
+鲮鲤剑 Prime 握柄
+科林斯 Prime 一套
+鲮鲤剑 Prime 蓝图
+超量载弹
+科林斯 Prime 枪管
+科林斯 Prime 枪机
+损坏的殁世机甲 外壳
+星形殁世烯
+净化达戈琥珀
+血注
+肉碾虫 壳甲
+喉骨刃者 壳甲
+狡黠回溯
+爆破护盾
+医疗菌丝
+火卫二隔离库场景
+火卫二大厅场景
+火卫二突破场景
+殁世机甲 简化
+Grineer 帆船战舰货舱场景
+轨道飞行器场景
+光能炮台场景
+火卫二地穴场景
+火卫二通道场景
+剧毒射击
+真实击杀
+无尽弹雨
+Corpus 贮藏所场景
+殁世机甲 液压
+殁世机甲 闪击
+集气城市元素分配场景
+殁世机甲 狂暴
+火卫二覆灭场景
+关刀 Prime 刀刃
+毒芽 Prime 蓝图
+关刀 Prime 握柄
+毒芽 Prime 枪管
+Nezha Prime 系统 蓝图
+Nezha Prime 机体 蓝图
+毒芽 Prime 枪机
+Nezha Prime 头部神经光元 蓝图
+Nezha Prime 一套
+殁世机甲 窜升
+孢丝感染枪 枪托
+疆南星刺 铆钉
+忠勇共生
+殁世机甲 摩擦
+殁世机甲 修复
+虚空锐将 外壳
+置灵者 一套
+天仓·悲痛之刃 蓝图
+殁世机甲 狂暴化
+置灵者 枪管
+虚空锐将 机舱
+巴什穆 蓝图
+虚空锐将 武器舱
+塞多 蓝图
+Octavia Prime 蓝图
+双簧管 Prime 蓝图
+双簧管 Prime 枪机
+手鼓 Prime 一套
+双簧管 Prime 枪托
+双簧管 Prime 一套
+手鼓 Prime 枪管
+双簧管 Prime 枪管
+Octavia Prime 机体 蓝图
+Octavia Prime 头部神经光元 蓝图
+手鼓 Prime 枪机
+Octavia Prime 系统 蓝图
+手鼓 Prime 蓝图
+Octavia Prime 一套
+急冻控场 Prime
+均衡点 (Steam Pinnacle Pack)
+兽之印记
+无刹的密牢 （钥匙）
+Baro 虚空信号（钥匙）
+安魂 IV 遗物
+安魂 III 遗物
+安魂 II 遗物
+安魂 I 遗物
+后纪 H3 遗物
+后纪 O2 遗物
+后纪 K2 遗物
+后纪 R1 遗物
+后纪 B2 遗物
+后纪 L5 遗物
+后纪 P1 遗物
+后纪 M1 遗物
+后纪 D1 遗物
+后纪 G2 遗物
+后纪 O1 遗物
+后纪 V8 遗物
+后纪 H2 遗物
+后纪 C2 遗物
+后纪 A10 遗物
+后纪 T5 遗物
+后纪 T4 遗物
+后纪 G4 遗物
+后纪 H1 遗物
+后纪 S5 遗物
+后纪 V9 遗物
+后纪 E2 遗物
+后纪 S3 遗物
+后纪 B1 遗物
+后纪 E1 遗物
+后纪 A2 遗物
+后纪 T6 遗物
+后纪 C6 遗物
+后纪 W2 遗物
+后纪 A13 遗物
+后纪 O5 遗物
+后纪 S6 遗物
+后纪 C1 遗物
+后纪 S8 遗物
+后纪 V10 遗物
+后纪 S7 遗物
+后纪 Z1 遗物
+后纪 V5 遗物
+后纪 A3 遗物
+后纪 V7 遗物
+后纪 C4 遗物
+后纪 L3 遗物
+后纪 H4 遗物
+后纪 R2 遗物
+后纪 A5 遗物
+后纪 S4 遗物
+后纪 V4 遗物
+后纪 L4 遗物
+后纪 A4 遗物
+后纪 L2 遗物
+后纪 O3 遗物
+后纪 K3 遗物
+后纪 G1 遗物
+后纪 T1 遗物
+后纪 A9 遗物
+后纪 P3 遗物
+后纪 D2 遗物
+后纪 B3 遗物
+后纪 A8 遗物
+后纪 W1 遗物
+后纪 B4 遗物
+后纪 C5 遗物
+后纪 A11 遗物
+后纪 N3 遗物
+后纪 V6 遗物
+后纪 N5 遗物
+后纪 N4 遗物
+后纪 V3 遗物
+后纪 N2 遗物
+后纪 V2 遗物
+后纪 K5 遗物
+后纪 T2 遗物
+后纪 S2 遗物
+后纪 L1 遗物
+后纪 A1 遗物
+后纪 N1 遗物
+后纪 O4 遗物
+后纪 K4 遗物
+后纪 C3 遗物
+后纪 K1 遗物
+后纪 A12 遗物
+后纪 H5 遗物
+后纪 V1 遗物
+后纪 T3 遗物
+后纪 G3 遗物
+后纪 R3 遗物
+后纪 A6 遗物
+后纪 P2 遗物
+后纪 A7 遗物
+后纪 N6 遗物
+后纪 S1 遗物
+中纪 Z1 遗物
+中纪 B4 遗物
+中纪 K1 遗物
+中纪 N7 遗物
+中纪 B3 遗物
+中纪 N6 遗物
+中纪 R2 遗物
+中纪 Z3 遗物
+中纪 S12 遗物
+中纪 B2 遗物
+中纪 O1 遗物
+中纪 S6 遗物
+中纪 V5 遗物
+中纪 R4 遗物
+中纪 M3 遗物
+中纪 P1 遗物
+中纪 I2 遗物
+中纪 B1 遗物
+中纪 S13 遗物
+中纪 N5 遗物
+中纪 R1 遗物
+中纪 T1 遗物
+中纪 S5 遗物
+中纪 N15 遗物
+中纪 B7 遗物
+中纪 P2 遗物
+中纪 Z7 遗物
+中纪 N14 遗物
+中纪 G3 遗物
+中纪 N11 遗物
+中纪 N4 遗物
+中纪 V9 遗物
+中纪 N12 遗物
+中纪 E2 遗物
+中纪 Z6 遗物
+中纪 S14 遗物
+中纪 N13 遗物
+中纪 D2 遗物
+中纪 V4 遗物
+中纪 V6 遗物
+中纪 M1 遗物
+中纪 S9 遗物
+中纪 M2 遗物
+中纪 Z2 遗物
+中纪 N9 遗物
+中纪 A1 遗物
+中纪 V8 遗物
+中纪 B5 遗物
+中纪 V7 遗物
+中纪 N8 遗物
+中纪 L1 遗物
+中纪 V3 遗物
+中纪 V2 遗物
+中纪 G2 遗物
+中纪 R3 遗物
+中纪 Z5 遗物
+中纪 I1 遗物
+中纪 T3 遗物
+中纪 N3 遗物
+中纪 H1 遗物
+中纪 S8 遗物
+中纪 S7 遗物
+中纪 S3 遗物
+中纪 D1 遗物
+中纪 C1 遗物
+中纪 N10 遗物
+中纪 S11 遗物
+中纪 E1 遗物
+中纪 F1 遗物
+中纪 V1 遗物
+中纪 N2 遗物
+中纪 H2 遗物
+中纪 A2 遗物
+中纪 G1 遗物
+中纪 K2 遗物
+中纪 N1 遗物
+中纪 B6 遗物
+中纪 S2 遗物
+中纪 A3 遗物
+中纪 Z4 遗物
+中纪 T2 遗物
+中纪 A4 遗物
+中纪 S10 遗物
+中纪 S1 遗物
+前纪 T2 遗物
+前纪 T1 遗物
+前纪 O2 遗物
+前纪 S6 遗物
+前纪 M1 遗物
+前纪 V5 遗物
+前纪 N7 遗物
+前纪 K2 遗物
+前纪 A2 遗物
+前纪 N4 遗物
+前纪 S5 遗物
+前纪 O1 遗物
+前纪 C5 遗物
+前纪 R3 遗物
+前纪 E4 遗物
+前纪 V4 遗物
+前纪 N8 遗物
+前纪 S4 遗物
+前纪 N6 遗物
+前纪 N3 遗物
+前纪 F2 遗物
+前纪 T4 遗物
+前纪 D6 遗物
+前纪 P4 遗物
+前纪 O4 遗物
+前纪 S3 遗物
+前纪 N11 遗物
+前纪 D5 遗物
+前纪 G2 遗物
+前纪 C6 遗物
+前纪 V3 遗物
+前纪 K1 遗物
+前纪 H1 遗物
+前纪 M2 遗物
+前纪 A1 遗物
+前纪 Z2 遗物
+前纪 P1 遗物
+前纪 B3 遗物
+前纪 C2 遗物
+前纪 O3 遗物
+前纪 S7 遗物
+前纪 B2 遗物
+前纪 Z1 遗物
+前纪 D2 遗物
+前纪 F1 遗物
+前纪 S2 遗物
+前纪 L1 遗物
+前纪 C4 遗物
+前纪 R2 遗物
+前纪 N9 遗物
+前纪 B4 遗物
+前纪 I1 遗物
+前纪 K3 遗物
+前纪 N10 遗物
+前纪 P3 遗物
+前纪 P2 遗物
+前纪 S1 遗物
+前纪 G1 遗物
+前纪 C3 遗物
+前纪 N5 遗物
+前纪 V1 遗物
+前纪 B1 遗物
+前纪 E2 遗物
+前纪 Z3 遗物
+前纪 M3 遗物
+前纪 F3 遗物
+前纪 E1 遗物
+前纪 N2 遗物
+前纪 V2 遗物
+前纪 R1 遗物
+前纪 D3 遗物
+前纪 T3 遗物
+前纪 S8 遗物
+前纪 C1 遗物
+前纪 E5 遗物
+前纪 N1 遗物
+前纪 E3 遗物
+前纪 D4 遗物
+前纪 W1 遗物
+前纪 V6 遗物
+前纪 S9 遗物
+前纪 D1 遗物
+古纪 H2 遗物
+古纪 Z1 遗物
+古纪 B1 遗物
+古纪 A2 遗物
+古纪 L1 遗物
+古纪 W1 遗物
+古纪 V4 遗物
+古纪 S6 遗物
+古纪 N3 遗物
+古纪 N4 遗物
+古纪 M5 遗物
+古纪 C6 遗物
+古纪 C5 遗物
+古纪 V6 遗物
+古纪 V3 遗物
+古纪 B4 遗物
+古纪 N2 遗物
+古纪 G1 遗物
+古纪 I1 遗物
+古纪 T5 遗物
+古纪 G3 遗物
+古纪 B8 遗物
+古纪 D4 遗物
+古纪 T3 遗物
+古纪 S9 遗物
+古纪 S5 遗物
+古纪 C7 遗物
+古纪 K4 遗物
+古纪 T4 遗物
+古纪 N6 遗物
+古纪 B7 遗物
+古纪 P5 遗物
+古纪 D3 遗物
+古纪 N5 遗物
+古纪 P4 遗物
+古纪 S4 遗物
+古纪 S7 遗物
+古纪 C2 遗物
+古纪 K2 遗物
+古纪 B6 遗物
+古纪 M3 遗物
+古纪 C4 遗物
+古纪 M2 遗物
+古纪 V2 遗物
+古纪 O2 遗物
+古纪 P1 遗物
+古纪 T2 遗物
+古纪 V5 遗物
+古纪 B3 遗物
+古纪 N1 遗物
+古纪 K1 遗物
+古纪 C1 遗物
+古纪 W2 遗物
+古纪 S10 遗物
+古纪 P3 遗物
+古纪 D2 遗物
+古纪 M6 遗物
+古纪 S3 遗物
+古纪 H1 遗物
+古纪 B2 遗物
+古纪 T1 遗物
+古纪 A1 遗物
+古纪 M1 遗物
+古纪 P2 遗物
+古纪 A3 遗物
+古纪 M4 遗物
+古纪 G2 遗物
+古纪 F2 遗物
+古纪 V1 遗物
+古纪 B5 遗物
+古纪 C3 遗物
+古纪 Z2 遗物
+古纪 O1 遗物
+古纪 F1 遗物
+古纪 M7 遗物
+古纪 K5 遗物
+古纪 S2 遗物
+古纪 K3 遗物
+古纪 D1 遗物
+古纪 L2 遗物
+古纪 S8 遗物
+古纪 V8 遗物
+古纪 V7 遗物
+古纪 S1 遗物
+水肺
+奥斯蒂剑鱼
+璃化脊鳎
+墓沼隐龙
+倒刺蒂鳌
+高额异鳍
+针刺长鳄
+额叶鲤
+须腔棘鱼
+狍鸮胶蛳
+独角米索鳎
+韧铠灵鲷
+骨锥琼鲷
+查克鳗
+古泊拉
+阴暗鳐
+鲨客
+卡其那
+喉鱼
+库特-库特
+约格温
+塔洛
+摩图斯肺鱼
+盖拉佩德
+诺格
+克苏尔
+污泥环绕者
+液集者
+目—目
+回声环绕者
+砖瓦匠
+磷虾杀手
+海龙
+重筑虾
+多目鳗
+洗涤者
+修补机
+续播机
+长型环绕者
+失血
+万用自修
+埋首猛击
+防线封锁
+内部出血
+固盾火力
+鹦鹉螺 头部
+鹦鹉螺 蓝图
+防护射击
+猩红逐击
+苦痛弹头
+蠕虫熬煎
+防御火力
+能量调谐矩阵
+不屈矩阵
+鹦鹉螺 一套
+铁甲矩阵
+格拉努之劲敌
+强攻矩阵
+波段干扰
+鹦鹉螺 外壳
+劫袭矩阵
+凤凰烈焰
+鹦鹉螺 系统
+嫣红·潘塔 枪机
+嫣红·潘塔 枪托
+嫣红·潘塔 枪管
+嫣红·潘塔 蓝图
+嫣红·潘塔 一套
+阿索代 蓝图
+阿索代 枪管
+阿索代 枪机
+阿索代 一套
+哈利卡·亡魂
+葬铭 枪机
+葬铭 一套
+葬铭 枪管
+葬铭 蓝图
+火卫二深处场景
+火卫二之“心”场景
+火卫二岩坑场景
+火卫二土窖场景
+感染船舰全息场景
+幽寒归处场景
+火卫二遗弃场景
+火卫二膜质场景
+火卫二边缘场景
+后纪 G5 遗物
+中纪 K3 遗物
+中纪 Z8 遗物
+前纪 R4 遗物
+古纪 C8 遗物
+古纪 T6 遗物
+土星六号场景
+前纪 P5 遗物
+古纪 K6 遗物
+后纪 G6 遗物
+创伤 Prime 握柄
+创伤 Prime 锤头
+中纪 T4 遗物
+前纪 T5 遗物
+前纪 Z4 遗物
+中纪 V10 遗物
+Gara Prime 蓝图
+创伤 Prime 一套
+Gara Prime 一套
+Gara Prime 头部神经光元 蓝图
+Gara Prime 系统 蓝图
+碎裂者 Prime 蓝图
+后纪 N7 遗物
+碎裂者 Prime 枪机
+碎裂者 Prime 枪管
+碎裂者 Prime 一套
+古纪 A4 遗物
+后纪 I1 遗物
+碎裂者 Prime 枪托
+创伤 Prime 蓝图
+中纪 A5 遗物
+Gara Prime 机体 蓝图
+古纪 G4 遗物
+修复支援
+战术上膛 Prime
+空爆弹
+中纪 D3 遗物
+融合储能池
+丰盛滋养
+后纪 T7 遗物
+棱晶·马谢特砍刀
+奥堤克光子枪·破坏者
+镀层 地狱弹膛
+恶毒指令
+塞拉脚架 蓝图
+推诿否认
+镀层 弹头扩散
+迅捷怜悯
+万兹稳定器 蓝图
+镀层 步枪才能
+乍布脚架 蓝图
+骸克猎犬 蓝图
+镀层 氩晶瞄具
+镀层 致死加速
+力量汲取
+制衡
+辛塔稳定器
+回购审计
+镀层 液压准心
+加姆核心 蓝图
+重点招股
+铎玛猎犬 蓝图
+硬重启
+拜拉猎犬 蓝图
+镀层 准确射手
+反射否认
+艾莱核心 蓝图
+空中招股
+协同招股
+锐克稳定器 蓝图
+莱胡核心 蓝图
+防火墙
+镀层 通晓霰弹枪
+厄加脚架 蓝图
+虚无审计
+Oull
+多元否认
+均衡审计
+镀层 分裂膛室
+新世间战斗表情动作
+中枢苏达操纵表情动作
+血色面纱胸甲
+佩兰数列操纵表情动作
+中枢苏达胸甲
+均衡仲裁者操纵表情动作
+血色面纱护膝
+次要·无情
+主要·无情
+钢铁防线胸甲
+Meridian Armor Set
+钢铁防线臂甲
+中枢苏达枪炮表情动作
+索拉里斯腿甲
+新世间膝甲
+均衡仲裁者战斗表情动作
+钢铁防线战斗表情动作
+钢铁防线操纵表情动作
+次要·熟练
+新世间臂甲
+中枢苏达腿甲
+钢铁防线耐力表情动作
+Perrin Armor Set
+Ostron 护胸
+中枢苏达耐力表情动作
+佩兰数列护腿
+均衡仲裁者胸甲
+中枢苏达臂甲
+Suda Armor Set
+佩兰数列胸甲
+佩兰数列耐力表情动作
+均衡仲裁者臂甲
+索拉里斯胸印
+Solaris Armor Set
+血色面纱工程表情动作
+新世间工程表情动作
+血色面纱臂章
+Lokan Armor Set
+新世间操纵表情动作
+索拉里斯护套
+均衡仲裁者工程表情动作
+Ostron Armor Set
+佩兰数列护套
+新世间胸甲
+均衡仲裁者膝甲
+中枢苏达工程表情动作
+Hexis Armor Set
+均衡仲裁者枪炮表情动作
+新世间耐力表情动作
+均衡仲裁者耐力表情动作
+次要·死首
+钢铁防线枪炮表情动作
+Ostron 护腿
+钢铁防线腿甲
+Ostron 护套
+中枢苏达战斗表情动作
+血色面纱操纵表情动作
+主要·死首
+Red Veil Armor Set
+主要·熟练
+使节 枪管
+使节 一套
+使节 枪机
+使节 枪托
+使节 蓝图
+Nidus Prime 蓝图
+前纪 B5 遗物
+中纪 N17 遗物
+斯特朗 Prime 一套
+前纪 S10 遗物
+古纪 K7 遗物
+古纪 N8 遗物
+中纪 P3 遗物
+麦格努斯 Prime 一套
+弹匣增幅 Prime
+后纪 M2 遗物
+Nidus Prime 一套
+斯特朗 Prime 蓝图
+后纪 I2 遗物
+屠戮盛宴
+麦格努斯 Prime 蓝图
+古纪 N7 遗物
+斯特朗 Prime 枪机
+前纪 B6 遗物
+中纪 T5 遗物
+斯特朗 Prime 枪管
+Nidus Prime 系统 蓝图
+斯特朗 Prime 枪托
+古纪 T7 遗物
+后纪 A14 遗物
+Nidus Prime 头部神经光元 蓝图
+Nidus Prime 机体 蓝图
+麦格努斯 Prime 枪机
+麦格努斯 Prime 枪管
+中纪 N16 遗物
+尸鬼电锯 锯片
+尸鬼电锯 握把
+尸鬼电锯 引擎
+尸鬼电锯 一套
+尸鬼电锯 机体
+尸鬼电锯 蓝图
+霰弹扩充 Prime
+瓦斯提枪刃
+血吸之握
+强者祝福
+古纪 L3 遗物
+迅猛之咬
+前纪 B7 遗物
+前纪 P6 遗物
+中纪 A6 遗物
+中纪 H3 遗物
+古纪 R1 遗物
+无情失落
+古纪 K8 遗物
+中纪 D4 遗物
+后纪 D3 遗物
+后纪 M3 遗物
+古纪 N9 遗物
+后纪 P4 遗物
+丧钟 Prime 一套
+诡文枭主之鄙
+混沌蛇主之苦
+前纪 A3 遗物
+后纪 S9 遗物
+欺谋狼主之鄙
+祸根 Prime 刀刃
+古纪 T8 遗物
+Harrow Prime 蓝图
+Harrow Prime 一套
+前纪 G3 遗物
+前纪 I2 遗物
+欺谋狼主之苦
+混沌蛇主之恨
+丧钟 Prime 枪管
+后纪 T8 遗物
+古纪 H3 遗物
+后纪 C7 遗物
+Harrow Prime 头部神经光元 蓝图
+祸根 Prime 枪管
+丧钟 Prime 蓝图
+诡文枭主之恨
+古纪 S11 遗物
+中纪 K4 遗物
+中纪 N18 遗物
+欺谋狼主之恨
+古纪 T9 遗物
+诡文枭主之苦
+Harrow Prime 机体 蓝图
+祸根 Prime 一套
+混沌蛇主之鄙
+后纪 K6 遗物
+Harrow Prime 系统 蓝图
+古纪 C9 遗物
+祸根 Prime 握柄
+丧钟 Prime 枪机
+祸根 Prime 蓝图
+前纪 S11 遗物
+热能传递
+中纪 P4 遗物
+美食家
+「布拉喀萨」王座圣殿场景
+涌流之刃
+刺骨寒霜
+古纪 N10 遗物
+狙击枪弹药转换 Prime
+Garuda Prime 机体 蓝图
+黑鸦 Prime 一套
+古纪 N11 遗物
+噬蛇弩 Prime 一套
+后纪 K7 遗物
+古纪 S12 遗物
+黑鸦 Prime 枪管
+黑鸦 Prime 蓝图
+噬蛇弩 Prime 枪机
+噬蛇弩 Prime 蓝图
+古纪 H4 遗物
+黑鸦 Prime 枪托
+噬蛇弩 Prime 枪托
+Garuda Prime 系统 蓝图
+前纪 G4 遗物
+后纪 S11 遗物
+古纪 Z3 遗物
+黑鸦 Prime 枪机
+后纪 S10 遗物
+古纪 G5 遗物
+前纪 P7 遗物
+古纪 N12 遗物
+噬蛇弩 Prime 枪管
+Garuda Prime 一套
+中纪 N20 遗物
+Garuda Prime 头部神经光元 蓝图
+前纪 N12 遗物
+后纪 G7 遗物
+中纪 C2 遗物
+中纪 M4 遗物
+Garuda Prime 蓝图
+扎里曼羽化之穹场景
+扎里曼圣物装置场景
+扎里曼月动球场场景
+始现·消散
+蜕化·活力
+狂风压境
+扎里曼货舱场景
+扎里曼校园场景
+扎里曼天使栖息场景
+扎里曼幽静花园场景
+始现·新生
+扎里曼居住舱场景
+永恒·湮灭
+扎里曼律典大厅场景
+扎里曼牢房场景
+扎里曼阿尔布雷希特公园场景
+蜕化·效能
+始现·救世
+扎里曼农业区场景
+扎里曼停泊区场景
+瀑流·溢能
+优势距离
+战斗装填
+扎里曼居住区场景
+扎里曼圆形剧院场景
+奏凯 蓝图
+风鸣 枪机 蓝图
+暮斩 握柄 蓝图
+双雄 蓝图
+风鸣 枪管 蓝图
+风鸣 一套
+暮斩 一套
+暮斩 刀刃 蓝图
+风鸣 枪托 蓝图
+凤殁 蓝图
+永恒·猛攻
+三伏天夜晚场景
+清刚 蓝图
+逐枭 蓝图
+蜕化·重塑
+蜕化·升腾
+星察 一套
+永恒·流转
+星察飞航系统 蓝图
+星察引擎 蓝图
+星察机身 蓝图
+瀑流·强化
+棱晶 阴影 一套
+分形·重置
+瀑流·耀炎
+棱晶 激光点发
+瀑流·精准
+月刃狐帕菲拉 基因印记
+狡黠狐帕菲拉 基因印记
+守卫扑猎达赛 基因印记
+宰相扑猎达赛 基因印记
+铁甲狐帕菲拉 基因印记
+法老扑猎达赛 基因印记
+豪猪 Prime 蓝图
+后纪 K10 遗物
+后纪 N8 遗物
+前纪 O5 遗物
+前纪 P8 遗物
+中纪 N21 遗物
+Khora Prime 机体 蓝图
+凯瑞斯双刀 Prime 一套
+后纪 K9 遗物
+豪猪 Prime 一套
+后纪 G8 遗物
+前纪 H3 遗物
+凯瑞斯双刀 Prime 握柄
+Khora Prime 一套
+Khora Prime 蓝图
+中纪 G4 遗物
+豪猪 Prime 枪机
+中纪 D5 遗物
+古纪 K9 遗物
+后纪 K8 遗物
+邪恶释放
+前纪 H2 遗物
+豪猪 Prime 枪管
+前纪 V7 遗物
+Khora Prime 头部神经光元 蓝图
+凯瑞斯双刀 Prime 蓝图
+中纪 S15 遗物
+后纪 S12 遗物
+致命精准
+Khora Prime 系统 蓝图
+凯瑞斯双刀 Prime 刀刃
+观众怪奇
+执刑官 聚精会神
+古纪 N13 遗物
+中纪 Z9 遗物
+执刑官 持久力
+前纪 W2 遗物
+中纪 E3 遗物
+执刑官 川流不息
+执刑官 生命力
+后纪 T9 遗物
+执刑官 延伸
+古纪 S13 遗物
+古纪 H6 遗物
+龙辰 Prime 刀刃
+中纪 T6 遗物
+前纪 P10 遗物
+Revenant Prime 机体 蓝图
+Revenant Prime 系统 蓝图
+龙辰 Prime 一套
+龙辰 Prime 蓝图
+前纪 N13 遗物
+Revenant Prime 一套
+幻离子 Prime 枪管
+古纪 P6 遗物
+Revenant Prime 头部神经光元 蓝图
+龙辰 Prime 握柄
+前纪 K4 遗物
+幻离子 Prime 蓝图
+幻离子 Prime 一套
+古纪 H5 遗物
+后纪 T10 遗物
+幻离子 Prime 枪机
+后纪 N9 遗物
+古纪 R2 遗物
+Revenant Prime 蓝图
+前纪 P9 遗物
+古纪 S14 遗物
+幻离子 Prime 枪托
+古纪 B9 遗物
+后纪 A15 遗物
+后纪 S13 遗物
+中纪 S16 遗物
+中纪 I3 遗物
+前纪 O6 遗物
+真月武扇
+联结·电压
+主要·霜冻
+赋能·崛起
+月面狂风 一套
+破障森林场景
+月面狂风 枪托
+沙罗之牙 刀刃
+破障工厂场景
+月球 Circulus 场景
+赋能·赐福
+沙罗之牙 握柄
+沙罗之牙 一套
+破障骨螺战舰场景
+月面狂风 枪管
+月面狂风 枪机
+古纪 G6 遗物
+后纪 S14 遗物
+前纪 T6 遗物
+中纪 C3 遗物
+Baruuk Prime 机体 蓝图
+前纪 A4 遗物
+后纪 N10 遗物
+后纪 B5 遗物
+中纪 A8 遗物
+前纪 V8 遗物
+Baruuk Prime 蓝图
+中纪 K5 遗物
+前纪 K5 遗物
+古纪 V9 遗物
+古纪 B10 遗物
+中纪 A7 遗物
+后纪 G9 遗物
+Baruuk Prime 系统 蓝图
+中纪 D6 遗物
+后纪 F1 遗物
+Baruuk Prime 头部神经光元 蓝图
+前纪 R5 遗物
+古纪 A5 遗物
+Baruuk Prime 一套
+古纪 H7 遗物
+眼镜蛇 & 鹤 Prime 护手
+盗贼双枪 Prime 枪管
+盗贼双枪 Prime 一套
+盗贼双枪 Prime 连接器
+眼镜蛇 & 鹤 Prime 蓝图
+盗贼双枪 Prime 蓝图
+眼镜蛇 & 鹤 Prime 刀刃
+眼镜蛇 & 鹤 Prime 握柄
+眼镜蛇 & 鹤 Prime 一套
+盗贼双枪 Prime 枪机
+闪劫 枪机
+主要·镀金弹头
+琉璃风暴
+阴极电流
+赋能·坚定
+古纪 D5 遗物
+石晶之花 枪管
+石晶之花 枪托
+石晶之花 一套
+闪劫 一套
+闪劫 握柄
+古纪 P7 遗物
+赋能·回返
+次要·手足
+石晶之花 枪机
+涌浪之护
+催眠护盾
+中纪 R5 遗物
+次要·妨害
+中纪 A9 遗物
+前纪 L2 遗物
+后纪 M4 遗物
+《Citrine 的遗愿》工厂场景
+闪劫 枪管
+Hildryn Prime 蓝图
+Hildryn Prime 系统 蓝图
+阴影 Prime 蓝图
+Hildryn Prime 一套
+阴影 Prime 系统
+翠雀 Prime 一套
+Hildryn Prime 头部神经光元 蓝图
+翠雀 Prime 枪管
+阴影 Prime 头部
+阴影 Prime 一套
+翠雀 Prime 枪托
+Hildryn Prime 机体 蓝图
+翠雀 Prime 枪机
+阴影 Prime 外壳
+翠雀 Prime 蓝图
+古纪 S15 遗物
+前纪 N14 遗物
+古纪 R3 遗物
+前纪 D7 遗物
+后纪 H6 遗物
+古纪 B11 遗物
+前纪 S12 遗物
+古纪 H8 遗物
+前纪 H4 遗物
+后纪 G10 遗物
+后纪 A16 遗物
+中纪 S17 遗物
+中纪 N22 遗物
+后纪 B6 遗物
+后纪 K11 遗物
+古纪 K10 遗物
+中纪 L2 遗物
+前纪 P11 遗物
+主要·滞阻
+赋能·心相
+次要·冷颤
+古纪 V10 遗物
+前纪 P12 遗物
+弓箭·利矢
+幽冥陵地区场景
+霰弹·仇杀
+地穴歌剧场景
+中纪 A10 遗物
+后纪 K12 遗物
+后纪 I3 遗物
+魔导·侵略
+前纪 C7 遗物
+地穴公园场景
+城堡镇场景
+大陆乡村场景
+赋能·收割
+上港区场景
+山之锋芒
+奥金魇龙角斗场场景
+主要·激昂
+遂心 上弓臂 蓝图
+遂心 握把 蓝图
+遂心 弓弦 蓝图
+遂心 一套
+遂心 下弓臂 蓝图
+圆形剧场场景
+纳土鲉
+浮伤鱼
+息壤鲳
+Teshin 的洞穴场景
+精灵鱼
+言录书院场景
+载世龟
+棱晶·楞次弓
+Sentient 涌现
+Sentient 猛攻
+赋能·力升
+主要·毒侵
+次要·爆发
+双枪·滑射
+锐铁 枪管
+锐铁 一套
+锐铁 枪机
+锐铁 枪托
+中纪 L3 遗物
+前纪 C8 遗物
+Wisp Prime 机体 蓝图
+军扇 Prime 蓝图
+军扇 Prime 一套
+雷霆 Prime 蓝图
+军扇 Prime 握柄
+雷霆 Prime 枪管
+中纪 C4 遗物
+中纪 D7 遗物
+Wisp Prime 一套
+雷霆 Prime 一套
+雷霆 Prime 枪托
+Wisp Prime 头部神经光元 蓝图
+中纪 F2 遗物
+中纪 N23 遗物
+古纪 H9 遗物
+前纪 G5 遗物
+无畏之战
+后纪 W3 遗物
+军扇 Prime 刀刃
+坚毅乌尔佛伦
+古纪 W3 遗物
+前纪 P13 遗物
+时空侵蚀
+Wisp Prime 系统 蓝图
+暗影迷雾
+雷霆 Prime 枪机
+前纪 K6 遗物
+后纪 H7 遗物
+中纪 T7 遗物
+Wisp Prime 蓝图
+卓越者优势
+异变弹匣
+讲台岛场景
+地穴边缘场景
+小岛场景
+陨石坑岛场景
+曲径群岛场景
+盆地岛场景
+地穴禁卫兵营场景
+地穴小镇场景
+地穴月动球场景
+棱晶·欧玛
+古纪 L4 遗物
+地穴住所场景
+后纪 D4 遗物
+前纪 F4 遗物
+中纪 B8 遗物
+古纪 M8 遗物
+古纪 O3 遗物
+古纪 G7 遗物
+前纪 N15 遗物
+前纪 Z5 遗物
+后纪 P5 遗物
+后纪 A17 遗物
+后纪 L6 遗物
+后纪 G12 遗物
+后纪 G11 遗物
+中纪 D8 遗物
+中纪 K7 遗物
+中纪 K6 遗物
+中纪 S18 遗物
+中纪 Z10 遗物
+前纪 W3 遗物
+前纪 C9 遗物
+前纪 P14 遗物
+前纪 B8 遗物
+前纪 M4 遗物
+古纪 N14 遗物
+古纪 T10 遗物
+古纪 C10 遗物
+古纪 R4 遗物
+古纪 G8 遗物
+Grendel Prime 一套
+Grendel Prime 蓝图
+Grendel Prime 头部神经光元 蓝图
+Grendel Prime 机体 蓝图
+Grendel Prime 系统 蓝图
+咀嚼金杖 Prime 一套
+咀嚼金杖 Prime 蓝图
+咀嚼金杖 Prime 刀刃
+咀嚼金杖 Prime 握柄
+席尔火枪 Prime 一套
+席尔火枪 Prime 蓝图
+席尔火枪 Prime 枪管
+席尔火枪 Prime 枪机
+催化护盾
+星界连结
+双影连结
+坚韧连结
+串联连结
+传染连结
+神秘连结
+隐蔽连结
+恢复连结
+重大连结
+空中连结
+多种连结
+凶恶连结
+震撼连结
+强固连结
+深渊信标
+骨葬 Prime
+中纪 T8 遗物
+阿尔布雷希特的档案室场景
+阿尔布雷希特的办公室场景
+解剖圣所场景
+断肢峡谷场景
+解剖构造场景
+能量枢纽
+集中 聚精会神
+净化低语者
+原子烟尘
+冷颤触染
+灭亡低语者
+易爆变体
+辐能装填
+驱逐低语者
+关键突变
+迅发核素
+聚焦氡气
+磨砺锋刃
+Xata 神祈
+Vome 神祈
+Ris 神祈
+Netra 神祈
+Lohk 颂歌
+Khra 颂歌
+Jahu 颂歌
+Fass 颂歌
+机遇所至
+极致境地
+宗师锐势
+梦者之怒
+纪律之功
+核控突破
+毁灭低语者
+蓄能重划 Prime
+辐光弩炮 一套
+辐光弩炮 蓝图
+辐光弩炮 枪管
+辐光弩炮 枪机
+辐光弩炮 枪托
+近战·侵染
+近战·报复
+近战·渐强
+近战·漩涡
+近战·憎恶
+近战·暴露
+近战·刃影
+近战·坚壁
+痉挛 Prime
+Gauss Prime 一套
+Gauss Prime 蓝图
+Gauss Prime 头部神经光元 蓝图
+Gauss Prime 机体 蓝图
+Gauss Prime 系统 蓝图
+后纪 A18 遗物
+后纪 P6 遗物
+后纪 D5 遗物
+后纪 B7 遗物
+中纪 A11 遗物
+中纪 W1 遗物
+中纪 F3 遗物
+前纪 B9 遗物
+前纪 G6 遗物
+前纪 A5 遗物
+前纪 H6 遗物
+前纪 H5 遗物
+古纪 G10 遗物
+古纪 P8 遗物
+古纪 G9 遗物
+古纪 R5 遗物
+古纪 A6 遗物
+古纪 C11 遗物
+阿利乌双枪 Prime 一套
+阿利乌双枪 Prime 蓝图
+阿利乌双枪 Prime 枪管
+阿利乌双枪 Prime 枪机
+阿利乌双枪 Prime 连接器
+迅发电浆炮 Prime 一套
+迅发电浆炮 Prime 蓝图
+迅发电浆炮 Prime 枪管
+迅发电浆炮 Prime 枪机
+迅发电浆炮 Prime 枪托
+梦者羁绊
+关键熔毁
+后纪 V11 遗物
+后纪 C8 遗物
+中纪 P5 遗物
+前纪 C10 遗物
+前纪 A6 遗物
+古纪 G11 遗物
+古纪 T11 遗物
+Dante 的隐居处场景
+废弃承载体场景
+不渝珊瑚
+乌戈之怒
+幻形惩戒
+圣枪惩戒
+易伤诱饵
+寄生 生命力
+崇敬枪队
+多重结晶
+战士休憩
+庇佑护甲
+效价炼成
+Protea Prime 一套
+Protea Prime 蓝图
+Protea Prime 头部神经光元 蓝图
+Protea Prime 机体 蓝图
+Protea Prime 系统 蓝图
+后纪 B8 遗物
+后纪 F2 遗物
+后纪 P7 遗物
+中纪 M5 遗物
+中纪 A12 遗物
+中纪 P6 遗物
+中纪 O2 遗物
+前纪 W5 遗物
+前纪 W4 遗物
+前纪 G7 遗物
+前纪 V9 遗物
+古纪 T12 遗物
+古纪 P9 遗物
+逐电 Prime 一套
+逐电 Prime 蓝图
+逐电 Prime 枪管
+逐电 Prime 枪机
+翁 Prime 一套
+翁 Prime 蓝图
+翁 Prime 握柄
+翁 Prime 刀刃
+弹能过继
+光子过载
+遂心 蓝图
+赋能·冰暴
+次要·激涌
+赋能·电池
+次要·筑垒
+舞厅幻影装置
+城堡幻影装置
+奥金魇龙角斗场幻影装置
+圣所幻影装置
+Zanuka 竞技场幻影装置
+Grineer 小行星幻影装置
+奥罗金遗迹幻影装置
+Ambulas 竞技场幻影装置
+血色面纱神庙幻影装置
+月光庭院幻影装置
+霰弹枪元素师
+半自动霰弹枪炮轰
+步枪元素师
+半自动步枪炮轰
+手枪元素师
+半自动手枪炮轰
+近战元素师
+幽暗蔓延
+时协炮击
+魅影魂灵
+粉碎壁垒
+近战·苦痛
+双重弹头 Prime
+古纪 E1 遗物
+古纪 K11 遗物
+古纪 H10 遗物
+前纪 S14 遗物
+前纪 B10 遗物
+前纪 N16 遗物
+前纪 S13 遗物
+中纪 G5 遗物
+后纪 R4 遗物
+后纪 T11 遗物
+后纪 S15 遗物
+致命效率 Prime
+中纪 G6 遗物
+后纪 M5 遗物
+麦格努斯双枪 Prime 一套
+麦格努斯双枪 Prime 蓝图
+麦格努斯双枪 Prime 连接器
+Sevagoth Prime 一套
+Sevagoth Prime 蓝图
+Sevagoth Prime 头部神经光元 蓝图
+Sevagoth Prime 机体 蓝图
+Sevagoth Prime 系统 蓝图
+后纪 S17 遗物
+后纪 S16 遗物
+后纪 O6 遗物
+中纪 P7 遗物
+中纪 B9 遗物
+中纪 Z11 遗物
+中纪 G7 遗物
+中纪 A13 遗物
+中纪 E4 遗物
+前纪 F5 遗物
+前纪 A7 遗物
+前纪 H7 遗物
+前纪 N17 遗物
+古纪 G12 遗物
+古纪 N15 遗物
+古纪 W4 遗物
+古纪 C12 遗物
+葬铭 Prime 一套
+葬铭 Prime 蓝图
+葬铭 Prime 枪管
+葬铭 Prime 枪机
+鹦鹉螺 Prime 一套
+鹦鹉螺 Prime 蓝图
+鹦鹉螺 Prime 头部
+鹦鹉螺 Prime 外壳
+鹦鹉螺 Prime 系统
+炽烈憎恨
+潜隐恐惧
+戴拿的猎物
+神盾之风
+旋爆电击
+剧毒饱嗝
+晴日伞 膛线
+天薙刀 压迫点
+脓毒之爪
+灼热之爪
+电击之爪
+寒冰之爪
+刺杀姿势
+狂暴姿势
+护卫姿势
+坚韧姿势
+诡秘姿势
+稳定姿势
+富足寻回者
+忠诚寻回者
+丰裕寻回者
+精准调控
+免疫抵御
+磁力打击
+击钟者
+嗜血
+伤残调控
+优胜劣汰
+蛮力调控
+镀层 斩铁
+镀层 增幅线圈
+镀层 元素师
+古纪 D6 遗物
+前纪 H8 遗物
+中纪 C5 遗物
+中纪 K8 遗物
+后纪 G13 遗物
+后纪 N11 遗物
+Xaku Prime 一套
+Xaku Prime 蓝图
+Xaku Prime 头部神经光元 蓝图
+Xaku Prime 机体 蓝图
+Xaku Prime 系统 蓝图
+灭杀者 Prime 一套
+灭杀者 Prime 蓝图
+灭杀者 Prime 枪管
+灭杀者 Prime 枪机
+灭杀者 Prime 枪托
+威震武扇 Prime 一套
+威震武扇 Prime 蓝图
+威震武扇 Prime 握柄
+威震武扇 Prime 刀刃
+后纪 A19 遗物
+后纪 G14 遗物
+后纪 H8 遗物
+后纪 T12 遗物
+中纪 W2 遗物
+中纪 G8 遗物
+中纪 Q1 遗物
+中纪 L4 遗物
+前纪 V10 遗物
+前纪 T7 遗物
+前纪 E6 遗物
+前纪 G8 遗物
+古纪 M9 遗物
+古纪 G13 遗物
+古纪 N16 遗物
+古纪 X1 遗物
+赋能·影袭
+赋能·激励
+主要·准星
+次要·失活
+近战·无畏
+赋能·奇袭
+赋能·黩武
+赋能·暴虐
+商场穹顶幻影装置
+霍瓦尼亚庭院幻影装置
+夏季霍瓦尼亚露台场景
+科技泰坦电子商店场景
+冬季霍瓦尼亚交叉路口场景
+霍瓦尼亚中央商场地铁
+夏季霍瓦尼亚廉租公寓场景
+春季霍瓦尼亚历史街区场景
+秋季霍瓦尼亚旧城区场景
+轨道游戏厅场景
+中央商场后房场景
+磁化冲击
+磁暴洗礼
+辐能利爪
+磁化利爪
+敏锐主武
+幽灵 膛线
+磁性弹容
+敏锐手枪
+无情枪斗
+励磁加速
+可靠战友
+召唤师之怒
+磁场循环
+磁性核心
+侦察者 一套
+侦察者 枪管
+侦察者 枪机
+侦察者 枪托
+夜语者 77 一套
+夜语者 77 枪管
+夜语者 77 枪机
+夜语者 77 握柄
+塞多 Prime 一套
+塞多 Prime 蓝图
+塞多 Prime 枪机
+塞多 Prime 枪管
+塞多 Prime 枪托
+佐伦双斧 Prime 一套
+佐伦双斧 Prime 蓝图
+佐伦双斧 Prime 握柄
+佐伦双斧 Prime 刀刃
+Lavos Prime 一套
+Lavos Prime 蓝图
+Lavos Prime 头部神经光元 蓝图
+Lavos Prime 机体 蓝图
+Lavos Prime 系统 蓝图
+后纪 P9 遗物
+后纪 M6 遗物
+后纪 Z2 遗物
+后纪 F3 遗物
+后纪 P8 遗物
+中纪 D9 遗物
+中纪 T9 遗物
+中纪 X1 遗物
+中纪 C6 遗物
+前纪 A8 遗物
+古纪 S16 遗物
+古纪 A7 遗物
+古纪 Q1 遗物
+古纪 L5 遗物
+前纪 P15 遗物
+生化弹药
+毒气铅弹
+古纪 S17 遗物
+前纪 S15 遗物
+前纪 M5 遗物
+中纪 N19 遗物
+中纪 S19 遗物
+后纪 N12 遗物
+蠕虫驱逐
+木马追缉
+软件安全
+防毒先锋
+字节卫士
+持续清理
+驱动除尘
+电脑巡警
+快速修正
+免疫护盾
+即刻安保
+威胁壁垒
+极速防护
+科技细胞终幕者体育馆场景
+灾变之门
+御神签运势
+导电球
+熔融堆芯
+赋能·脱逃
+赋能·热火
+赋能·辐照
+暴乱-848 一套
+暴乱-848 枪管 蓝图
+暴乱-848 枪机 蓝图
+暴乱-848 枪托 蓝图
+净化者 1 一套
+净化者 1 枪管
+净化者 1 枪机
+净化者 1 枪托
+艾弗旺-5 木星 一套
+艾弗旺-5 木星 枪管
+艾弗旺-5 木星 枪机
+艾弗旺-5 木星 枪托
+艾弗旺-8 火星 一套
+艾弗旺-8 火星 枪管
+艾弗旺-8 火星 枪机
+艾弗旺-8 火星 枪托
+双子恶行 一套
+双子恶行 刀刃
+双子恶行 握柄
+稳定枪手 Prime
+稳定 Prime
+制衡 Prime
+古纪 A8 遗物
+古纪 Q2 遗物
+古纪 Y1 遗物
+古纪 Z4 遗物
+前纪 K7 遗物
+前纪 P16 遗物
+中纪 A14 遗物
+中纪 D10 遗物
+中纪 G9 遗物
+后纪 N13 遗物
+后纪 V12 遗物
+后纪 Y1 遗物
+Yareli Prime 一套
+Yareli Prime 蓝图
+Yareli Prime 头部神经光元 蓝图
+Yareli Prime 机体 蓝图
+Yareli Prime 系统 蓝图
+大久和弓 Prime 一套
+大久和弓 Prime 蓝图
+大久和弓 Prime 下弓臂
+大久和弓 Prime 上弓臂
+大久和弓 Prime 弓身
+大久和弓 Prime 弓弦
+卡帕压力枪 Prime 一套
+卡帕压力枪 Prime 蓝图
+卡帕压力枪 Prime 枪管
+卡帕压力枪 Prime 枪机
+后纪 C9 遗物
+霍瓦尼亚倒塌地下场景
+Lavo 的游乐场场景
+霍瓦尼亚地铁站场景
+古纪 T13 遗物
+古纪 A9 遗物
+前纪 R6 遗物
+中纪 P8 遗物
+后纪 B9 遗物
+前纪 T8 遗物
+古纪 M10 遗物
+痛点
+自激奇点
+暴力复仇
+棱彩同伴
+刀锋迫击
+翠玉审判
+毁灭低语者 Prime
+八爪角斗场场景
+织屿人云岛场景
+织屿人漂流环礁场景
+儒临地场景
+双衍王境王座圣殿场景
+至日广场舞台场景
+Kullervo 的牢房场景
+驱逐低语者 Prime
+净化低语者 Prime
+Caliban Prime 一套
+Caliban Prime 蓝图
+Caliban Prime 头部神经光元 蓝图
+Caliban Prime 机体 蓝图
+Caliban Prime 系统 蓝图
+瓦德雅 Prime 一套
+瓦德雅 Prime 蓝图
+瓦德雅 Prime 枪管
+瓦德雅 Prime 枪机
+瓦德雅 Prime 枪托
+脉纹 Prime 一套
+脉纹 Prime 蓝图
+脉纹 Prime 刀刃
+脉纹 Prime 握柄
+后纪 Y2 遗物
+后纪 C10 遗物
+后纪 V13 遗物
+后纪 S18 遗物
+中纪 A15 遗物
+前纪 G9 遗物
+前纪 V12 遗物
+前纪 V11 遗物
+前纪 L3 遗物
+古纪 K12 遗物
+古纪 A10 遗物
+古纪 E2 遗物
+古纪 O4 遗物
+古纪 N17 遗物
+古纪 C13 遗物
+Helminth 疾冲者 基因印记
+灭亡低语者 Prime
+流连忘返
+炼狱裂隙
+致命豪勇
+反弹链波
+阿耶檀识 Chattraka 塑像
+深矿前哨基地场景
+深矿场景
+深矿洞穴场景
+深矿实验室场景
+深矿营养工厂场景
+五运场景
+《老师》道场场景
+《老师》地球场景
+《老师》反应堆场景
+《老师》飞船场景
+终劫怪奇
+恐怖杀戮
+后纪 S19 遗物
+后纪 W4 遗物
+中纪 H4 遗物
+前纪 G10 遗物
+古纪 F3 遗物
+古纪 L6 遗物
+噬尸活力
+Gyre Prime 一套
+Gyre Prime 蓝图
+Gyre Prime 头部神经光元 蓝图
+Gyre Prime 机体 蓝图
+Gyre Prime 系统 蓝图
+电幻步枪 Prime 一套
+电幻步枪 Prime 蓝图
+电幻步枪 Prime 枪管
+电幻步枪 Prime 枪机
+电幻步枪 Prime 枪托
+红隼 Prime 一套
+红隼 Prime 蓝图
+红隼 Prime 握把
+红隼 Prime 刀刃
+后纪 T13 遗物
+后纪 A20 遗物
+中纪 T10 遗物
+中纪 O3 遗物
+中纪 C7 遗物
+中纪 P9 遗物
+中纪 K9 遗物
+前纪 X1 遗物
+前纪 A9 遗物
+前纪 Y1 遗物
+前纪 V14 遗物
+前纪 P17 遗物
+前纪 V13 遗物
+古纪 G14 遗物
+古纪 N18 遗物
+古纪 D7 遗物
+赋能·坚韧
+赋能·精湛
+赋能·规避
+主要·堡垒
+主要·过载
+次要·照射
+主要·衰弱
+赋能·专注
+近战·疾驰
+胆寒尖刺
+古纪 L7 遗物
+罗瑟的遗忘竞技场
+里昂的房间场景
+玛丽的房间场景
+大教堂场景
+博罗瞭望台场景
+马克沃斯炮场景
+世界播种器场景
+佩里塔显化场景
+坦纳迪斯堡场景
+乌卡
+塞塔
+拉瓦
+恩肖
+梅伦
+达仁
+乌肖
+西塔
+埃蒂
+亚达
+梅哈
+卡齐
+维萨
+塔安
+埃伊
+霍卡
+奥维
+洛塔
+维南
+哈达
+先锋 C1 遗物
+先锋 P1 遗物
+先锋 M1 遗物
+先锋 E1 遗物
+恶毒弹匣 Prime
+齐塞
+齐阿
+齐乌
+齐哈
+齐奥
+弹链 Prime
+安魂 永恒 遗物
+逐电结局
+Sentient 切口
+真相之焰
+诡异的 Vesper 中继站场景
+Voruna Prime 一套
+Voruna Prime 蓝图
+Voruna Prime 头部神经光元 蓝图
+Voruna Prime 机体 蓝图
+Voruna Prime 系统 蓝图
+月面狂风 Prime 一套
+月面狂风 Prime 蓝图
+月面狂风 Prime 枪管
+月面狂风 Prime 枪机
+月面狂风 Prime 枪托
+沙罗之牙 Prime 一套
+沙罗之牙 Prime 蓝图
+沙罗之牙 Prime 刀刃
+沙罗之牙 Prime 握柄
+后纪 V14 遗物
+后纪 S20 遗物
+后纪 C11 遗物
+中纪 V11 遗物
+中纪 S20 遗物
+中纪 P10 遗物
+前纪 D8 遗物
+前纪 E7 遗物
+前纪 L4 遗物
+古纪 N19 遗物
+古纪 C14 遗物
+钢铁守望场景
+后纪 D6 遗物
+后纪 Y3 遗物
+后纪 G15 遗物
+中纪 N24 遗物
+中纪 M6 遗物
+中纪 G10 遗物
+前纪 A10 遗物
+前纪 V15 遗物
+前纪 Z6 遗物
+前纪 A11 遗物
+古纪 A11 遗物
+</script>
 
-    <div id="root"></div>
+<script id="data-en" type="text/plain">
+Secura Dual Cestra
+Creeping Bullseye
+Mutalist Alad V Assassinate (Key)
+Irradiating Disarm
+Antimatter Absorb
+Arcane Barrier
+Arcane Ice
+Telos Boltor
+Frost Prime Set
+Catalyzer Link
+Targeting Subsystem
+Strun Wraith Receiver
+Tectonic Fracture
+Mantis Set
+Acid Shells
+Nightwatch Napalm
+Quasar Drill
+Comet Blast
+Nebula Bore
+Kaszas Blade
+Velocitus Receiver
+Fluctus Barrel
+Fluctus Limbs
+Fluctus Stock
+Decurion Barrel
+Hydroid Prime Set
+Cleanse Orokin
+Kappa Beacon
+Star Crimzian
+Virtuos Strike
+Hunter Adrenaline
+Viper Wraith
+Orokin Derelict Plaza Scene
+Grineer Shipyards Manufactory Scene
+Infested Ship Bridge Scene
+Lua Nursery Scene
+Corpus Gas City Conduit Scene
+Grineer Settlement Reactor Scene
+Corpus Ice Planet Wreckage Scene
+Eidolon Madurai Lens
+Eidolon Vazarin Lens
+Eidolon Unairu Lens
+Zephyr Prime Chassis Blueprint
+Mycona Colony Scene
+Pax Soar
+Redeemer Prime Blade
+Akjagara Prime Receiver
+Kitgun Riven Mod (Veiled)
+Spectrosiphon
+Wolf Sledge Head
+Wolf Sledge Set
+Orb Vallis Scene
+Zhuge Prime Grip
+Freeze Force
+Swirling Tiger
+Quick Thinking
+Wyrm Prime Blueprint
+Spring-Loaded Blade
+Kinetic Diversion
+Power Throw
+Fateful Truth
+Malignant Force
+Superior Defenses
+Energy Inversion
+Shattering Justice
+Fast Hands
+Polar Magazine
+Rifle Amp
+Spare Parts
+No Return
+Vaporize
+Vicious Spread
+Enemy Sense
+Blind Rage
+Rifle Ammo Mutation
+Imperator Vandal Barrel
+Orthos Prime Blade
+Loki Prime Systems Blueprint
+Naramon Lens
+Coaction Drift
+Shotgun Savvy
+Volcanic Edge
+Odonata Prime Harness Blueprint
+Secondary Wind
+Odonata Prime Systems Blueprint
+Point Strike
+Soaring Strike
+Pummel
+Velocitus Stock
+Rathbone Handle
+Rathbone Head
+Latron Wraith Barrel
+Heated Charge
+System Reroute
+Gorgon Wraith Receiver
+Calculated Shot
+Vigor
+Hikou Prime Pouch
+Reaper Prime Blueprint
+Arcane Thrak Helmet
+Primed Point Blank
+Power Of Three
+Rhino Prime Neuroptics Blueprint
+Disarming Purity
+Gorgon Wraith Stock
+Ballistica Prime String
+Crossing Snakes
+Rejuvenation
+Dig
+Shredder
+Continuous Misery
+Vasto Prime Set
+Arcane Avalon Helmet
+Thermite Rounds
+Arcane Flux Helmet
+Telos Akbolto
+Arcane Aura Helmet
+Sancti Castanas
+Rift Strike
+Vulcan Blitz
+Arcane Gambit Helmet
+Arcane Chlora Helmet
+Arcane Esprit Helmet
+Arcane Trickery
+Oberon Prime Neuroptics Blueprint
+Volt Prime Neuroptics Blueprint
+Arcane Phoenix Helmet
+Ballistica Prime Lower Limb
+Volt Prime Chassis Blueprint
+Marquise Veridos
+Arcane Reverb Helmet
+Explosive Legerdemain
+Smite Orokin
+Arcane Hemlock Helmet
+Vampire Leech
+Zhuge Prime Blueprint
+Ninkondi Prime Chain
+Zhuge Prime Receiver
+Zhuge Prime Set
+Wukong Prime Neuroptics Blueprint
+Ruinous Extension
+Savagery
+Pistol Gambit
+Gleaming Blight
+Ember Prime Neuroptics Blueprint
+Lingering Torment
+Hammer Shot
+Primed Shotgun Ammo Mutation
+Arcane Velocity
+Nyx Prime Blueprint
+Dera Vandal Stock
+Karak Wraith Blueprint
+Nyx Prime Systems Blueprint
+Swing Line
+Dual Kamas Prime Set
+Measured Burst
+Safeguard Switch
+Prisma Shade
+Gas City Lobby Scene
+Overextended
+Protect
+Total Eclipse
+Arcane Pulse Helmet
+Vigilante Pursuit
+Purging Slash
+Arcane Mag Gauss Helmet
+Ancient Fusion Core
+Furax Wraith Right Gauntlet
+Auger Strike
+Nyx Prime Neuroptics Blueprint
+Rhino Prime Blueprint
+Steady Hands
+Tigris Prime Receiver
+Energy Conversion
+Arcane Resistance
+Lethal Torrent
+War Blade
+Detect Vulnerability
+Elemental Sandstorm
+Steel Fiber
+Magazine Extension
+Concealed Explosives
+Primed Ravage
+Depleted Reload
+Helios Prime Carapace
+Wyrm Prime Systems
+Trinity Prime Neuroptics Blueprint
+Mind Freak
+Fang Prime Handle
+Streamline
+Insulation
+Pressurized Magazine
+Ambush Optics
+Nyx Prime Chassis Blueprint
+Capacitance
+Shell Compression
+Loki Prime Chassis Blueprint
+Bore
+Signal Flare
+Lightning Dash
+Mag Prime Chassis Blueprint
+Snipetron Vandal Set
+Battering Maneuver
+Piercing Step
+Fireball Frenzy
+Lasting Purity
+Energy Siphon
+Stalk
+Magazine Warp
+Infiltrate
+Coiling Viper
+Primed Pressure Point
+Cold Snap
+Hell's Chamber
+Stockpiled Blight
+Nami Skyla Prime Handle
+Fracturing Wind
+Fulmination
+Ammo Drum
+Sovereign Outcast
+Gladiator Might
+Heavy Impact
+Thunderbolt
+Pool Of Life
+Entropy Burst
+Fatal Attraction
+Seismic Palm
+Pressure Point
+Modified Munitions
+Natural Talent
+Flechette
+Shimmering Blight
+Justice Blades
+Buzz Kill
+Pyrana Prime Blueprint
+Pyrana Prime Receiver
+Pyrana Prime Barrel
+Destreza Prime Set
+Primed Expel Grineer
+Primed Expel Corpus
+Primed Expel Infested
+Primed Expel Orokin
+Quaking Hand
+Flame Gland
+Dividing Blades
+Smooth Phasmin
+Arcane Pulse
+Sudden Justice
+Blood Rush
+Shrapnel Shot
+Coolant Leak
+Ward Recovery
+Primed Heated Charge
+Neutron Star
+Skull Shots
+Loki Prime Neuroptics Blueprint
+Vigilante Fervor
+Ankyros Prime Blade
+Ankyros Prime Gauntlet
+Bo Prime Blueprint
+Silva & Aegis Prime Guard
+Vicious Frost
+Jagged Edge
+Shield Disruption
+Magus Vigor
+Shotgun Barrage
+Arcane Swindle Helmet
+Gladiator Vice
+Arcane Meridian Helmet
+Legendary Fusion Core
+Tigris Prime Stock
+Spinning Needle
+Snipetron Vandal Stock
+Wildfire
+Bane Of Grineer
+Scimitar Avionics Blueprint
+Reflex Guard
+Everlasting Ward
+Ash Prime Neuroptics Blueprint
+Jolt
+Vectis Prime Stock
+Stunning Speed
+Primed Continuity
+Bo Prime Handle
+Crash Course
+Vital Systems Bypass
+Singularity
+Armored Acrobatics
+Lethal Momentum
+Primed Bane Of Infested
+Primed Bane Of Corpus
+Carrier Prime Blueprint
+Vulpine Mask
+Primed Bane Of Grineer
+Vectis Prime Barrel
+Tactical Pump
+Arcane Menticide Helmet
+Arcane Aurora Helmet
+Soma Prime Blueprint
+Unleashed
+Vasto Prime Barrel
+Arcane Chorus Helmet
+Vasto Prime Blueprint
+Entropy Flight
+Saryn Prime Set
+Poppin' Vert
+Magus Repair
+Magus Glitch
+Perfect Balance
+Strain Consume
+Zaw Riven Mod (Veiled)
+Wolf Sledge Blueprint
+Magus Overload
+Molecular Fission
+Wolf Sledge Motor
+Wild Frenzy
+Napalm Grenades
+Tipedo Prime Handle
+Stradavar Prime Set
+Equinox Prime Blueprint
+Bronco Prime Barrel
+War Hilt
+Nova Prime Systems Blueprint
+Frost Prime Blueprint
+Bronco Prime Blueprint
+Astral Twilight
+Snap Shot
+Burston Prime Receiver
+Fang Prime Blade
+Vauban Prime Neuroptics Blueprint
+Hikou Prime Stars
+Intruder
+Prisma Angstrum
+Phaedra Stock
+Scorch
+Entropy Spike
+Eleventh Storm
+Nova Prime Neuroptics Blueprint
+Antimatter Mine
+Nova Prime Chassis Blueprint
+Prism Guard
+Trick Mag
+Nova Prime Blueprint
+Deceptive Bond
+Frost Prime Neuroptics Blueprint
+Arcane Squall Helmet
+Calculated Redirection
+Charged Shell
+Cleanse Corpus
+Searing Steel
+Accelerated Deflection
+Clashing Forest
+Primal Rage
+Celestial Stomp
+Secura Penta
+Razor Shot
+Creeping Terrify
+Trinity Prime Blueprint
+Grim Fury
+Ayatan Orta Sculpture
+Energy Channel
+Hallowed Reckoning
+Convulsion
+Arcane Fury
+Rapid Resilience
+Pistol Pestilence
+Primed Morphic Transformer
+Frail Momentum
+Pathogen Rounds
+Arcane Aegis
+Sudden Impact
+Arcane Consequence
+Tempered Blade
+Smite Corpus
+Arcane Energize
+Fanged Fusillade
+Gladiator Resolve
+Ghost
+Rime Rounds
+Vulkar Wraith
+Ayatan Piv Sculpture
+Negation Armor
+Blunderbuss
+Sybaris Prime Barrel
+Centaur Aegis
+Cephalon Suda Augment Mod
+Banshee Prime Chassis Blueprint
+Chilling Grasp
+Wukong Prime Chassis Blueprint
+Blazing Steel
+Fired Up
+Shattering Storm
+Fear Sense
+Bullet Dance
+Twin Vipers Wraith Blueprint
+Split Chamber
+North Wind
+Shotgun Scavenger
+Synoid Gammacor
+Helios Prime Set
+Rakta Ballistica
+Hydroid Prime Neuroptics Blueprint
+Greedy Pull
+Silva & Aegis Prime Set
+Sanctuary
+Tether Grenades
+Aviator
+Swooping Falcon
+Constitution
+Smite Infusion
+Kavasa Prime Kubrow Collar Set
+Latron Prime Set
+Lex Prime Set
+Odonata Prime Set
+Gun Glide
+Rime Vault
+Vanquished Prey
+Voltaic Lance
+Deft Tempo
+Double Tap
+Final Act
+Final Tap
+Hydraulic Chamber
+Hydraulic Gauge
+Loose Hatch
+Narrow Barrel
+Strun Wraith Barrel
+Eidolon Zenurik Lens
+Destreza Prime Handle
+Enhanced Durability
+Holster Amp
+Arcane Strike
+Sinister Reach
+Vectis Prime Set
+Carving Mantis
+Primed Pack Leader
+Arcane Nullifier
+Rhino Prime Set
+Sicarus Prime Set
+Grinloked
+Arcane Victory
+Hastened Steps
+Lie In Wait
+Boltor Prime Receiver
+Boltor Prime Stock
+Night Stalker
+Synoid Heliocor
+Elytron Systems
+Steel Meridian Augment Mod
+Shadow Harvest
+Argent Scourge
+Tigris Prime Barrel
+Eject Magazine
+Plan B
+Burning Wasp
+Sharpened Bullets
+Ripper Rounds
+Soma Prime Receiver
+Reaping Spiral
+Soma Prime Stock
+Sharpened Blade
+Strafing Slide
+Scimitar Set
+Surplus Diverters
+Cataclysmic Continuum
+Braton Prime Set
+Relentless Assault
+Silva & Aegis Prime Hilt
+Calculated Spring
+Comet Rounds
+Hydroid Prime Chassis Blueprint
+Aklex Prime Blueprint
+Aklex Prime Set
+Ballistica Prime Blueprint
+Tranquil Cleave
+Link Vitality
+Pack Leader
+Soul Survivor
+Molecular Conversion
+Thumper
+Rush
+Infected Clip
+Cleanse Infested
+Blaze
+Vacuum
+Energy Generator
+Scarlet Hurricane
+Vicious Approach
+Frost Jaw
+Shock Collar
+Thrash Landing
+Motus Impact
+Aero Vantage
+Motus Setup
+Gale Kick
+Motus Signal
+Deck 12 Scene
+Ninkondi Prime Blueprint
+Zhuge Prime Barrel
+Ninkondi Prime Handle
+Ninkondi Prime Set
+Wukong Prime Set
+Scindo Prime Handle
+Vile Precision
+Parallax Scope
+Vitality
+Sniper Scavenger
+Sunika Kubrow Imprint
+Adarza Kavat Imprint
+Rubico Prime Barrel
+Stormbringer
+Arcane Eruption
+Arcane Vespa Helmet
+Escape Velocity
+Expel Infested
+Gas City Cloud Vista Scene
+Combustion Rounds
+Sniper Ammo Mutation
+Loki Prime Blueprint
+Seeking Force
+Target Cracker
+Fleeting Expertise
+Critical Delay
+Provoked
+Spoiled Strike
+Incendiary Coat
+Arcane Coil Helmet
+Augur Accord
+Breach Loader
+Dual Kamas Prime Blueprint
+Gaia's Tragedy
+Latron Prime Barrel
+Karak Wraith Barrel
+Zenurik Lens
+Agility Drift
+Bite
+Afterburn
+Rising Storm
+Ember Prime Set
+Redirection
+Fang Prime Set
+Chilling Globe
+Mag Prime Set
+Exothermic
+Nekros Prime Neuroptics Blueprint
+Eagle Eye
+Shield Overload
+Arc Coil
+Chaos Sphere
+Hysterical Fixation
+Defiled Reckoning
+Crash Shot
+Ammo Case
+Euphona Prime Set
+Blade Of Truth
+Focus Energy
+Hawk Eye
+Boar Prime Blueprint
+Oberon Prime Set
+Centaur Blade
+Sweeping Serration
+Agkuza Blade
+Link Redirection
+Tiberon Prime Blueprint
+Prisma Dual Cleavers
+Directed Convergence
+Saryn Prime Blueprint
+Primed Heavy Trauma
+Arcane Awakening
+Gamma Beacon
+Arcane Ultimatum
+Dera Vandal Blueprint
+Prisma Obex
+Bo Prime Set
+Boar Prime Set
+Ballistica Prime Receiver
+Boltor Prime Set
+Strun Wraith Stock
+Strun Wraith Set
+Kogake Prime Set
+Kogake Prime Gauntlet
+Zephyr Prime Blueprint
+Lato Vandal Set
+Lato Vandal Blueprint
+Lato Vandal Barrel
+Braton Vandal Set
+Grineer Settlement Artillery Scene
+Kuva Fortress Crevice Scene
+Grineer Sealab Centrifuge Scene
+Lua Balcony Scene
+Reawaken
+Valkyr Prime Neuroptics Blueprint
+Centaur Handle
+Augur Message
+True Punishment
+Entropy Detonation
+Rending Crane
+Air Recon
+Venka Prime Blueprint
+Euphona Prime Blueprint
+Onorix Handle
+Point Blank
+Reflection
+Stinging Thorn
+Shotgun Amp
+Magus Anomaly
+Dual Kamas Prime Handle
+Virtuos Surge
+Marked Target
+Empowered Blades
+Kavasa Prime Buckle
+Strain Eruption
+Stand United
+Kavasa Prime Band
+Kuva Throne Scene
+Sanctuary Conduit Scene
+Venom Teeth
+Rising Steel
+Piercing Fury
+Star Amarast
+Venerdo Hoverdrive
+Trail Blazer
+Scan Matter
+Kinetic Friction
+Scan Aquatic Lifeforms
+Air Time
+Rail Guards
+Assault Mode
+Mag Locks
+Inertia Dampeners
+Akvasto Prime Set
+Perpetual Agony
+Armored Agility
+Body Count
+Arcane Deflection
+Weeping Wounds
+Akbronco Prime Link
+Vermillion Storm
+Maiming Strike
+Investigator
+Firewalker
+Hydraulic Crosshairs
+Toxic Flight
+Laser Sight
+Smite Infested
+Venom Dose
+Rending Turn
+Seismic Wave
+Dakra Prime Handle
+Expel Grineer
+Soma Prime Barrel
+Mag Prime Neuroptics Blueprint
+Primed Fast Hands
+Furax Wraith Set
+Dead Eye
+Melee Riven Mod (Veiled)
+Corrosive Projection
+Pistol Riven Mod (Veiled)
+Heavy Trauma
+Exodia Valor
+Charged Chamber
+Tidal Impunity
+Piercing Caliber
+Arcane Backdraft Helmet
+Adhesive Blast
+Kinetic Collision
+Thundermiter
+Finishing Touch
+Static Alacrity
+Ash Prime Chassis Blueprint
+Tigris Prime Blueprint
+Emergent Aftermath
+Fortitude
+Ash Prime Systems Blueprint
+Mag Prime Systems Blueprint
+Prisma Grakata
+Mobilize
+Vectis Prime Receiver
+Automatic Trigger
+Armored Recovery
+Vaykor Sydon
+Slip Magazine
+Homing Fang
+Arcane Grace
+Maul
+Enhanced Vitality
+Bo Prime Ornament
+Dera Vandal Receiver
+Ankyros Prime Set
+Vile Acceleration
+Barrel Diffusion
+Whirlwind
+Antitoxin
+Disruptor
+Heavy Caliber
+Piercing Hit
+Continuity
+Tainted Clip
+Shock Trooper
+Flow
+Critical Deceleration
+Wyrm Prime Carapace
+Healing Flame
+Atlantis Vulcan
+Prisma Tetra
+Sonic Fracture
+Paris Prime Set
+Trinity Prime Set
+Vigilante Armaments
+Sybaris Prime Blueprint
+Beguiling Lantern
+Ballistica Prime Set
+Virtuos Fury
+Virtuos Null
+Virtuos Tempo
+Exodia Force
+Virtuos Ghost
+Chromatic Blade
+Expel Orokin
+Gladiator Aegis
+Neutralizing Justice
+Radiant Zodian
+Biting Piranha
+Wukong Prime Blueprint
+Wukong Prime Systems Blueprint
+Zhuge Prime String
+Gilded Truth
+Link Fiber
+Sure Footed
+Bleeding Willow
+Undying Will
+Iron Phoenix
+Pointed Wind
+Stabilizer
+Rifle Scavenger
+Quickening
+Rubedo-Lined Barrel
+Sundering Strike
+Negate
+Peculiar Growth
+Destreza Prime Blade
+Mecha Empowered
+Mecha Pulse
+Mafic Rain
+Crashing Timber
+Tainted Hydra
+Lashing Coil
+Regen
+Aklex Prime Link
+Speed Trigger
+Augur Secrets
+Cressa's Garrison Scene
+Arbiter's Tribunal Scene
+Grineer Forest Industry Scene
+Banshee Prime Systems Blueprint
+Arrow Mutation
+Hydroid Prime Blueprint
+Hastened Deflection
+Infectious Injection
+Wise Razor
+Equinox Prime Systems Blueprint
+Archgun Riven Mod (Veiled)
+Paris Prime Blueprint
+Resonating Quake
+Flailing Branch
+Frostbite
+Gas City Central Drop Scene
+Lua Unairu Lens
+Shepherd
+Orokin Tower Extraction Scene
+Deadly Efficiency
+Virtuos Forge
+Akvasto Prime Blueprint
+Akvasto Prime Link
+Contamination Casing
+Onkko's Command Post Scene
+Flux Overdrive
+Onorix Blade
+Venka Prime Set
+Suppress
+Target Fixation
+Maglev
+Cleanse Grineer
+Heightened Reflexes
+Hunt
+Orthos Prime Blueprint
+Hall Of Malevolence
+Smite Grineer
+Firestorm
+Bane Of Corpus
+Berserker Fury
+Rousing Plunder
+Loose Magazine
+Life Strike
+Handspring
+Paris Prime Grip
+Lucky Shot
+Electrified Barrel
+Maximum Capacity
+Savior Decoy
+Stalking Fan
+Primed Bane Of Orokin
+Warm Coat
+Tainted Mag
+Tactical Retreat
+Bright Purity
+Frigid Blast
+Shrapnel Rounds
+Bleeding Edge
+Pax Seeker
+Mesa Prime Blueprint
+Equinox Prime Neuroptics Blueprint
+Redeemer Prime Blueprint
+Virtuos Spike
+Tipedo Prime Blueprint
+Serrated Edges
+Flame Repellent
+Quanta Vandal
+Mara Detron
+Shock Absorbers
+Bronco Prime Receiver
+Mutalist Alad V Nav Coordinate
+Burston Prime Blueprint
+Soft Hands
+Spring-Loaded Broadhead
+Rift Torrent
+Burston Prime Stock
+Sword Alone
+Tactical Reload
+Hikou Prime Blueprint
+Tear Gas
+Primed Slip Magazine
+Shelter
+Gemini Cross
+Rupture
+Arcane Vanguard Helmet
+Fomorian Accelerant
+Primed Flow
+Imperator Vandal Blueprint
+Primed Pistol Ammo Mutation
+Arcane Pendragon Helmet
+Prisma Veritux
+Resonance
+Ballistic Bullseye
+Volt Prime Blueprint
+Piercing Navigator
+Gas City Alad's Laboratory Scene
+Magnum Force
+Expel Corpus
+Ember Prime Chassis Blueprint
+Arcane Tempo
+Madurai Lens
+Unairu Lens
+Cunning Drift
+Endurance Drift
+Abating Link
+Power Drift
+Speed Drift
+Hallowed Eruption
+Stealth Drift
+Rhino Prime Chassis Blueprint
+Cutting Edge
+Iron Shrapnel
+Akbronco Prime Set
+Contagious Spread
+Arcane Agility
+Piercing Roar
+Carrier Prime Set
+Hushed Invisibility
+Dakra Prime Set
+Pilfering Swarm
+Diamond Skin
+Dera Vandal Set
+Toxic Sequence
+Latron Wraith Blueprint
+Latron Wraith Receiver
+Latron Wraith Stock
+Latron Wraith Set
+Territorial Aggression
+Swipe
+Pounce
+Sharpened Claws
+Twin Vipers Wraith Link
+Twin Vipers Wraith Receivers
+Twin Vipers Wraith Set
+Enemy Radar
+Nekros Prime Chassis Blueprint
+Arcane Bodyguard
+Arcane Primary Charger
+Swift Momentum
+Combat Discipline
+Arcane Blade Charger
+Melee Guidance
+Atlas Prime Chassis Blueprint
+Dethcube Prime Carapace
+Dethcube Prime Cerebrum
+Tekko Prime Gauntlet
+Dethcube Prime Blueprint
+Dethcube Prime Set
+Glacial Edge
+Organ Shatter
+Limbo Prime Systems Blueprint
+Runtime
+Hit And Run
+Ivara Prime Neuroptics Blueprint
+Ivara Prime Chassis Blueprint
+Ivara Prime Systems Blueprint
+Baza Prime Blueprint
+Baza Prime Set
+Aksomati Prime Set
+Aksomati Prime Link
+Baza Prime Stock
+Aksomati Prime Receiver
+Gram Prime Handle
+Primed Reach
+Warding Thurible
+Helios Prime Blueprint
+Terminal Velocity
+Ice Storm
+Cyclone Kraken
+Karak Wraith Receiver
+Orvius Disc
+Vazarin Lens
+Sinking Talon
+Health Conversion
+Reflex Coil
+Vasto Prime Receiver
+Searing Leap
+Loot Detector
+Enduring Bastille
+Hollowed Bullets
+Scimitar Engines Blueprint
+Ironclad Charge
+Veil's Binding Scene
+Magus Drive
+Quick Reload
+Strain Fever
+Archgun Ace
+Mad Stack
+Teeming Virulence
+Fortuna Scene
+Tipedo Prime Ornament
+Stradavar Prime Receiver
+Snipetron Vandal Barrel
+Arcane Scorpion Helmet
+Wyrm Prime Cerebrum
+Spry Sights
+Targeting Receptor
+Ayatan Valana Sculpture
+Bane Of Infested
+Shocking Touch
+Cyngas Barrel
+Sprint Boost
+Cyngas Stock
+Furious Javelin
+Lex Prime Blueprint
+Draining Gloom
+Gas City Elemental Refinement Scene
+Hellfire
+Precision Munition
+Argon Plating
+Corpus Void Key
+Hikou Prime Set
+Seeker
+Molten Impact
+Orthos Prime Handle
+Reaper Prime Blade
+Rending Strike
+Ammo Stock
+Self Destruct
+Spring-Loaded Chamber
+Accelerated Blast
+Scindo Prime Blueprint
+Tainted Shell
+Stinging Truth
+Repeater Clip
+Killing Blow
+Embedded Catalyzer
+Magma Chamber
+Rebound
+Discharge Strike
+Arcane Storm Helmet
+Reach
+Anti-Flak Plating
+Tear Azurite
+Shotgun Riven Mod (Veiled)
+Magus Cadence
+Exodia Brave
+Exodia Hunt
+Exodia Triumph
+Magus Nourish
+Virtuos Shadow
+Ember Prime Systems Blueprint
+Frost Prime Chassis Blueprint
+Rhino Prime Systems Blueprint
+Ember Prime Blueprint
+Eroding Blight
+Deadly Sequence
+Fever Strike
+Sawtooth Clip
+Arcane Essence Helmet
+Arcane Locust Helmet
+Tempo Royale
+Radian Sentirum
+Prisma Gorgon
+Brain Storm
+High Noon
+Scattered Justice
+Brutal Tide
+Funnel Clouds
+Ash Prime Blueprint
+Decurion Receiver
+Toxic Blight
+Kavasa Prime Kubrow Collar Blueprint
+Ayatan Cyan Star
+Fatal Acceleration
+Phaedra Barrel
+Thief's Wit
+Furax Wraith Left Gauntlet
+Melee Prowess
+Ayatan Amber Star
+Prolonged Paralysis
+Rifle Riven Mod (Veiled)
+Flak Shot
+Follow Through
+Quickdraw
+Guardian Derision
+Icy Avalanche
+Vay Hek Frequency Triangulator
+Whiplash Mine
+Odomedic
+Proton Jet
+Security Override
+Rift Haven
+Machete Wraith
+Safeguard
+Prova Vandal
+Path Of Statues
+Contagion Cloud
+Reaper Prime Set
+Immolated Radiance
+Vauban Prime Blueprint
+Carrier Prime Carapace
+Full Capacity
+Magnetized Discharge
+Ankyros Prime Blueprint
+Inaros Tomb Scene
+Boar Prime Barrel
+Oberon Prime Chassis Blueprint
+Lock And Load
+Lunaro Arena Scene
+Silva & Aegis Prime Blade
+Arcane Guardian
+Boltor Prime Blueprint
+Fast Deflection
+Sybaris Prime Set
+Oberon Prime Systems Blueprint
+Baza Prime Receiver
+Primed Smite Infested
+Shedu Barrel
+Shedu Receiver
+Primed Smite Corpus
+Sentient Fountain Scene
+Shedu Set
+Shedu Chassis
+Void Cloak
+Squad Renew
+Section Density
+Flow Burn
+Surging Dash
+Conductor
+Accumulating Whipclaw
+Heart Noctrul
+Photon Repeater
+Redeemer Prime Set
+Hypothermic Shell
+Warhead
+Battle Stations
+Countermeasures
+Blood Forge
+Balefire Surge
+Sentient Basin Scene
+Sentient Balcony Scene
+Endless Lullaby
+Magus Accelerant
+Galatine Prime Blueprint
+Aerial Ace
+Energizing Shot
+Anchored Glide
+Venomous Clip
+Dera Vandal Barrel
+Counterweight
+Anti-Grav Grenade
+Brief Respite
+Orthos Prime Set
+Hysterical Assault
+Adept Surge
+Gorgon Frenzy
+Volt Prime Set
+Esher Devar
+Banshee Prime Neuroptics Blueprint
+Electro Pulse
+Neutralize
+Retrieve
+Imperator Vandal Receiver
+Secura Lecta
+Amesha Systems
+Amesha Wings
+Amesha Harness
+Amesha Set
+Elytron Harness
+Elytron Set
+Itzal Systems Blueprint
+Itzal Wings Blueprint
+Itzal Harness Blueprint
+Itzal Set
+Ayatan Vaya Sculpture
+The Perrin Sequence Augment Mod
+New Loka Augment Mod
+Arbiters of Hexis Augment Mod
+Charm
+Cat's Eye
+Medi-Pet Kit
+Reaper Prime Handle
+Sicarus Prime Barrel
+Braton Prime Barrel
+Purifying Flames
+Overcharged
+Elytron Wings
+Mischief
+Tigris Prime Set
+Shield Charger
+Rakta Dark Dagger
+Static Discharge
+Pain Threshold
+Paris Prime String
+Double-Barrel Drift
+Gorgon Wraith Blueprint
+Argon Scope
+Explosive Demise
+Sicarus Prime Receiver
+Mantis Engines Blueprint
+Sure Shot
+Glaive Prime Blade
+Sapping Reach
+Karak Wraith Set
+Fragor Prime Set
+Crimson Dervish
+Akstiletto Prime Blueprint
+Akstiletto Prime Barrel
+Deep Freeze
+Akstiletto Prime Receiver
+Physique
+Akbolto Prime Receiver
+Paris Prime Upper Limb
+Akbolto Prime Blueprint
+Silva & Aegis Prime Blueprint
+Scindo Prime Blade
+Euphona Prime Barrel
+Mag Prime Blueprint
+Furax Wraith Blueprint
+Frost Prime Systems Blueprint
+Ice Spring
+Shattering Impact
+Morphic Transformer
+Helios Prime Cerebrum
+Paris Prime Lower Limb
+Triple Tap
+Malicious Raptor
+Shield Of Shadows
+Hollow Point
+Enduring Strike
+Sequence Burn
+Xiphos Fuselage Blueprint
+Mantis Fuselage Blueprint
+Bladed Rounds
+Shred
+Mantis Avionics Blueprint
+Serration
+Arcane Healing
+Scimitar Fuselage Blueprint
+Quick Return
+Lightning Rod
+Arcane Warmth
+Steel Charge
+Rage
+Lasting Sting
+Sancti Magistar
+EMP Aura
+Pacifying Bolts
+Metal Fiber
+Energy Amplifier
+Venari Bodyguard
+Virtuos Trojan
+Blinding Reave
+Dread Ward
+Prisma Grinlok
+Equinox Prime Chassis Blueprint
+Stradavar Prime Blueprint
+Vaykor Marelok
+Serrated Rounds
+Xiphos Engines Blueprint
+Titania Prime Neuroptics Blueprint
+Pangolin Prime Blade
+Pangolin Prime Set
+Titania Prime Blueprint
+Revo Reducer
+Sentient Scalpel
+Titania Prime Set
+Tribunal
+Catapult
+Blazing Pillage
+Spellbound Harvest
+Cruising Speed
+Artillery Cheap Shot
+Turret Velocity
+Ordnance Cheap Shot
+Ballista Measure
+Quicklock
+Ordnance Velocity
+Primed Cleanse Grineer
+Primed Cleanse Infested
+Primed Cleanse Corpus
+Primed Cleanse Orokin
+Abundant Mutation
+Dizzying Rounds
+Revealing Spores
+Enraged
+Rubble Heap
+Precision Strike
+Deadly Maneuvers
+Banshee Prime Blueprint
+Chilling Reload
+Streamlined Form
+Drifting Contact
+Valkyr Prime Chassis Blueprint
+Primed Cryo Rounds
+Centaur Set
+Onorix Set
+Agkuza Set
+Healing Return
+Corvas Set
+Reinforcing Stomp
+Rathbone Set
+Relentless Combination
+Cernos Prime Blueprint
+Cernos Prime Lower Limb
+Cernos Prime Upper Limb
+Cernos Prime Grip
+Condition Overload
+Viral Tempest
+Dispatch Overdrive
+Enduring Affliction
+Pistol Scavenger
+Wyrm Prime Set
+Naramon Transmute Core
+Vazarin Transmute Core
+Vengeful Revenant
+Astral Autopsy
+Ergo's Boardroom Scene
+Agile Aim
+Anticipation
+Plains Of Eidolon Scene
+Shred Shot
+Burston Prime Barrel
+Ice Wave Impedance
+Volt Prime Systems Blueprint
+Dakra Prime Blade
+Glaive Prime Disc
+Ayatan Ayr Sculpture
+Stretch
+Agkuza Guard
+Intensify
+Heavy Warhead
+Karak Wraith Stock
+Madurai Transmute Core
+Toxic Barrage
+Apex Predator
+Shotgun Ammo Mutation
+Calculated Victory
+Hyperion Thrusters
+Infested Impedance
+Hydroid Prime Systems Blueprint
+Primed Animal Instinct
+Pilfering Strangledome
+Proton Pulse
+Gas City Lifts Scene
+Dog Days Scene
+Shockwave Actuators
+Assimilate
+Glaive Prime Set
+Scindo Prime Set
+Telos Boltace
+Latron Prime Receiver
+Latron Prime Stock
+Lex Prime Barrel
+Grineer Forest Factory Scene
+Heart Nyth
+Impenetrable Offense
+Suda's Datascape Scene
+Sybaris Prime Receiver
+Staggering Shield
+Akstiletto Prime Set
+Stropha Set
+Velox Set
+Stahlta Barrel
+Stahlta Set
+Velox Receiver
+Stropha Blade
+Stahlta Receiver
+Stropha Receiver
+Stropha Stock
+Stropha Barrel
+Stahlta Stock
+Velox Barrel
+Corpus Ship Hangar Scene
+Corpus Ship Bridge Scene
+Corpus Ship Orbital Cannon Scene
+Glaxion Vandal
+Primed Rubedo-Lined Barrel
+Inaros Prime Set
+Inaros Prime Chassis Blueprint
+Inaros Prime Neuroptics Blueprint
+Inaros Prime Blueprint
+Inaros Prime Systems Blueprint
+Panthera Prime Stock
+Karyst Prime Handle
+Karyst Prime Set
+Panthera Prime Set
+Panthera Prime Barrel
+Panthera Prime Receiver
+Panthera Prime Blueprint
+Karyst Prime Blueprint
+Karyst Prime Blade
+Vigilante Supplies
+Crushing Ruin
+Braton Prime Stock
+Dakra Prime Blueprint
+Narrow Minded
+Xiphos Avionics Blueprint
+Stand Ground
+Glaive Prime Blueprint
+Primed Target Cracker
+Reflex Draw
+Akstiletto Prime Link
+Bane Of Orokin
+Hunhow's Datascape Scene
+Maim
+Oberon Prime Blueprint
+Looter
+Pistol Ammo Mutation
+Poisonous Sting
+Harrow's Temple Scene
+Amaryn's Retreat Scene
+Color Key Scene
+Phaedra Set
+Cernos Prime String
+Cernos Prime Set
+Valkyr Prime Blueprint
+Valkyr Prime Set
+Venka Prime Blades
+Bounty Hunter
+Target Acquired
+Heartseeker
+Loyal Companion
+Martial Fury
+Decisive Judgement
+Twirling Spire
+Auxiliary Power
+Eidolon Lens Blueprint
+Gleaming Talon
+Scavenge
+Gunslinger
+Sundering Weave
+Impaler Munitions
+Phoenix Renewal
+Shell Shock
+Larva Burst
+Cleaving Whirlwind
+Crowd Dispersion
+Cyngas Receiver
+Odonata Prime Blueprint
+Blind Justice
+Full Contact
+Medi-Ray
+Electromagnetic Shielding
+Imperator Vandal Set
+Afterburner
+Primed Pistol Gambit
+Vaykor Hek
+Hydraulic Barrel
+Saryn Prime Neuroptics Blueprint
+Nami Skyla Prime Blade
+Kronen Prime Handle
+Gladiator Finesse
+Augur Reach
+Sacrifice
+Hunter Track
+Hunter Command
+Boar Prime Receiver
+Omega Beacon
+Regenerative Molt
+Boar Prime Stock
+Gorgon Wraith Barrel
+Kogake Prime Boot
+Akbolto Prime Set
+Akbolto Prime Link
+Akbolto Prime Barrel
+Braton Vandal Blueprint
+Limbo Prime Set
+Partitioned Mallet
+Trapezium Xenorhast
+Juice
+Saxum Thorax
+Necramech Pressure Point
+Necramech Vitality
+Draining Bite
+Necramech Slipstream
+Acidic Spittle
+Endoparasitic Vector
+Necramech Thrusters
+Damaged Necramech Weapon Pod
+Faceted Tiametrite
+Damaged Necramech Engine
+Bomb The Landin'
+Ayatan Sah Sculpture
+Red Veil Augment Mod
+Cunning Aspect
+Reflect
+Rending Wind
+Corvas Receiver
+Noble Cadence
+Thermagnetic Shells
+Corvas Stock
+Kinetic Ricochet
+Mortal Conduct
+Parry
+Sicarus Prime Blueprint
+Gorgon Wraith Set
+Rising Skill
+Fracturing Crush
+Fang Prime Blueprint
+Radiant Finish
+Ferocity
+Xiphos Set
+High Voltage
+Vauban Prime Chassis Blueprint
+Recharge Barrier
+Tempered Bound
+Focused Acceleration
+Collision Force
+Latron Prime Blueprint
+Braton Prime Blueprint
+Defiled Snapdragon
+Nikana Prime Hilt
+Recuperate
+Nikana Prime Set
+Vital Sense
+Valkyr Prime Systems Blueprint
+Cyngas Set
+Broken War Set
+Venka Prime Gauntlet
+Kaszas Set
+Velocitus Set
+Fluctus Set
+Dual Decurion Set
+Broad Eye
+Voltage Sequence
+Akbronco Prime Blueprint
+Cryo Rounds
+Silent Battery
+Phaedra Receiver
+Euphona Prime Receiver
+Transient Fortitude
+Concussion Rounds
+Howl
+Agkuza Handle
+Carrier Prime Systems
+Covert Lethality
+Feathered Arrows
+Loaded Capacity
+Loose Chamber
+Armored Evade
+Nano-Applicator
+Focused Defense
+Guided Ordnance
+Strun Wraith Blueprint
+Titanic Rumbler
+Spira Prime Blueprint
+Spira Prime Set
+Sheev Blade
+Sheev Heatsink
+Sheev Set
+Rumbled
+Snipetron Vandal Blueprint
+Hunter's Bonesaw
+Velocitus Barrel
+Toxin Resistance
+Nami Skyla Prime Set
+Kronen Prime Set
+Helios Prime Systems
+Extend
+Primed Fever Strike
+Exodia Contagion
+Tiberon Prime Set
+Exodia Epidemic
+Mirage Prime Systems Blueprint
+Mirage Prime Blueprint
+Primed Quickdraw
+Mecha Recharge
+Synth Fiber
+Hush
+Fragor Prime Head
+Trample
+Metal Auger
+Master Thief
+Cryo Coating
+Bursting Mass
+Tipedo Prime Set
+True Steel
+Four Riders
+Vectis Prime Blueprint
+Animal Instinct
+Combustion Beam
+Harkonar Scope
+Gas City Walkway Scene
+Gas City Dead Exit Scene
+Aerodynamic
+Atlas Prime Set
+Tekko Prime Blade
+Tekko Prime Set
+Tekko Prime Blueprint
+Necramech Redirection
+Damaged Necramech Weapon Barrel
+Damaged Necramech Weapon Set
+Damaged Necramech Weapon Receiver
+Infectious Bite
+Paralytic Spores
+Crescent Devolution
+Panzer Devolution
+Anabolic Pollination
+Primo Flair
+Jugulus Barbs
+Saxum Carapace
+Hard Engage
+Vapor Trail
+Saxum Spittle
+Damaged Necramech Weapon Stock
+Necramech Reach
+Necramech Continuity
+Cabochon Embolos
+Necramech Steel Fiber
+Jugulus Spines
+Damaged Necramech Set
+Purified Heciphron
+Viral Quills
+Carnis Mandible
+Damaged Necramech Pod
+Necramech Refuel
+Carnis Stinger
+Crescent Charge
+Survival Instinct
+Deimos Underground Scene
+Deimos Cambion Drift Scene
+Nezha Prime Blueprint
+Guandao Prime Blueprint
+Combo Killer
+Thrall Pact
+Critical Surge
+Theorem Demulcent
+Sporothrix Blueprint
+Necramech Efficiency
+Theorem Infection
+Arum Spinosa Blueprint
+Volatile Quick Return
+Blending Talons
+Arum Spinosa Guard
+Arum Spinosa Set
+Sporothrix Set
+Residual Shock
+Primed Firestorm
+Primed Fulmination
+Bonewidow Set
+Bonewidow Weapon Pod
+Bonewidow Casing
+Morgha Stock
+Cortege Barrel
+Necramech Enemy Sense
+Cortege Stock
+Necramech Rebuke
+Cortege Set
+Bonewidow Capsule
+Voidrig Set
+Necramech Aviator
+Ayatan Hemakara Sculpture
+Prisma Dual Decurions
+Cedo Barrel
+Cedo Receiver
+Cedo Set
+Mirage Prime Chassis Blueprint
+Kogake Prime Blueprint
+Hornet Strike
+Sybaris Prime Stock
+Ore Gaze
+Vigilante Offense
+Magus Replenish
+Hunter Synergy
+Slicing Feathers
+Braton Vandal Receiver
+Braton Vandal Stock
+Peculiar Bloom
+Chroma Prime Set
+Raksa Kubrow Imprint
+Rubico Prime Set
+Gram Prime Blueprint
+Ambush
+Hunhow's Chamber Scene
+Lua Containment Scene
+Silver Grove Shrine Scene
+Synth Reflex
+Synth Deconstruct
+Fetch
+Tek Enhance
+Crashing Havoc
+Spira Prime Pouch
+Transistor Shield
+Shell Rush
+Sheev Blueprint
+Sheev Hilt
+Banshee Prime Set
+Vauban Prime Set
+Mesa's Waltz
+Fragor Prime Blueprint
+Sands Of Inaros
+Fragor Prime Handle
+Vauban Prime Systems Blueprint
+Scattering Inferno
+Kaszas Handle
+Tesla Bank
+Guided Effigy
+Lasting Covenant
+Razorwing Blitz
+Magus Cloud
+Revenge
+Corrupt Charge
+Equilibrium
+Carrier Prime Cerebrum
+Final Harbinger
+Burston Prime Set
+Loki Prime Set
+Nova Prime Set
+Nyx Prime Set
+Soma Prime Set
+Twitch
+Venomous Rise
+Adrenaline Boost
+Blind Shot
+Kill Switch
+Saryn Prime Chassis Blueprint
+Hunter Munitions
+Tiberon Prime Receiver
+Meteor Munitions
+Arcane Acceleration
+Augur Seeker
+Momentary Pause
+Eternal War
+Boltor Prime Barrel
+Gladiator Rush
+Vigilante Vigor
+Braton Prime Receiver
+Overcharge Detectors
+Overview
+Prize Kill
+Quick Charge
+Primed Rifle Ammo Mutation
+Razor Munitions
+Arcane Arachne
+Arcane Momentum
+Arcane Precision
+Calm & Frenzy
+Peaceful Provocation
+Saryn Prime Systems Blueprint
+Delta Beacon
+Nikana Prime Blueprint
+Recover
+Nikana Prime Blade
+Pyroclastic Flow
+Conductive Blade
+Zephyr Prime Neuroptics Blueprint
+Zephyr Prime Set
+Gnashing Payara
+Kronen Prime Blueprint
+Tiberon Prime Barrel
+Kronen Prime Blade
+Winds Of Purity
+Retribution
+Live Wire
+Ivara Prime Set
+Proof Fragment
+Empowered Quiver
+Insatiable
+Vigorous Swap
+Anemic Agility
+Rolling Guard
+Muzzle Flash
+Grineer Forest Water Pump Scene
+Exodia Might
+Avenging Truth
+Mirage Prime Neuroptics Blueprint
+Teshin's Refuge Scene
+Ballistica Prime Upper Limb
+Dual Rounds
+Orvius Blade
+Burdened Magazine
+Nami Skyla Prime Blueprint
+Sonic Boost
+Pax Bolt
+Akjagara Prime Set
+Akjagara Prime Link
+Magus Melt
+Resolute Focus
+Magus Firewall
+Magus Destruct
+Desiccation's Curse
+Stradavar Prime Barrel
+Stradavar Prime Stock
+Repair Kit
+Aero Periphery
+Anti-Grav Array
+Aero Agility
+Kavat's Grace
+Stasis Field
+Tractor Beam
+Proton Snap
+Ventkids Clubhouse Scene
+Gas City Lower Foyer Scene
+Gas City Corridors Scene
+Gas City Regulators Scene
+Primed Chamber
+Odonata Prime Wings Blueprint
+Seeking Fury
+Eidolon Naramon Lens
+Meteor Crash
+Tiberon Prime Stock
+Magus Husk
+Magus Elevate
+Hunter Recovery
+Guardian
+Mirage Prime Set
+Smoke Shadow
+Spectra Vandal Handle
+Spectra Vandal Blueprint
+Shatter Burst
+Breach Quanta
+Tether
+Prisma Twin Gremlins
+Celestial Nightfall
+Primed Charged Shell
+Akjagara Prime Barrel
+Charged Bullets
+Particle Ram
+Blackout Pulse
+Sabot Rounds
+Rubico Prime Receiver
+Galatine Prime Blade
+Gram Prime Set
+Sancti Tigris
+Rubico Prime Stock
+Nekros Prime Blueprint
+Trinity Prime Systems Blueprint
+Pistol Amp
+Preparation
+Titania Prime Chassis Blueprint
+Corinth Prime Stock
+Corinth Prime Blueprint
+Titania Prime Systems Blueprint
+Necramech Intensify
+Fury
+Citrine Antitoxin
+Pathocyst Subcortex
+Atlas Prime Systems Blueprint
+Atlas Prime Neuroptics Blueprint
+Atlas Prime Blueprint
+Dethcube Prime Systems
+Pyrana Prime Set
+Savage Silence
+Reaping Chakram
+Supra Vandal
+Limbo Prime Blueprint
+Braton Vandal Barrel
+Ravage
+Destreza Prime Blueprint
+Master Key
+Out Of Sight
+Khra
+Lohk
+Blood For Ammo
+Failsafe
+Blood For Energy
+Xata
+Split Flights
+Gram Prime Blade
+Voltaic Strike
+Limbo Prime Chassis Blueprint
+Ayatan Anasa Sculpture
+Lato Vandal Receiver
+Tek Assault
+Tek Gravity
+Tek Collateral
+Synth Charge
+Mecha Overdrive
+Star Divide
+Spira Prime Blade
+Snipetron Vandal Receiver
+Energy Field
+Zodiac Shred
+Air Thrusters
+Primed Regen
+Rifle Aptitude
+Augur Pact
+Teleport Rush
+Proboscis
+Furor
+Virulent Scourge
+Lex Prime Receiver
+Slay Board
+Mesa Prime Neuroptics Blueprint
+Redeemer Prime Handle
+Critical Focus
+Ammo Chain
+Cetus Scene
+Ion Infusion
+Wolf Sledge Handle
+Equinox Prime Set
+Necramech Seismic Wave
+Necramech Stretch
+Granum Void Scene
+Bhisaj-Bal
+Necramech Deflection
+Botanist
+Combo Fury
+Guandao Prime Set
+Zakti Prime Set
+Residual Boils
+Sporothrix Receiver
+Necramech Flow
+Volatile Parasite
+Residual Viremia
+Residual Malodor
+Mach Crash
+Volatile Rebound
+Sporothrix Barrel
+Ayatan Kitha Sculpture
+Theorem Contagion
+Morgha Receiver
+Cortege Receiver
+Voidrig Engine
+Necramech Augur
+Bonewidow Engine
+Cedo Stock
+Adaptation
+Sharpshooter
+Power Donation
+Cautious Shot
+Counter Pulse
+Baza Prime Barrel
+Aksomati Prime Barrel
+Grendel Systems Locator
+Spectra Vandal Chassis
+Spectra Vandal Set
+Primed Smite Grineer
+Sentient Concourse Scene
+Grendel Chassis Locator
+Fire Suppression
+Ion Burn
+Battle Forge
+Mending Splinters
+Despoil
+Enveloping Cloud
+Jet Stream
+Corvas Barrel
+No Current Leap
+Patagium
+Prisma Skana
+Bronco Prime Set
+Astral Slash
+Zephyr Prime Systems Blueprint
+Duality
+Push & Pull
+Efficient Transferral
+Gas City Upper Logistics Scene
+Lua Zenurik Lens
+Lapis Antitoxin
+Vermillion Antitoxin
+Exposing Harpoon
+Efficient Beams
+Companion Weapon Riven Mod (Veiled)
+Beryl Antitoxin
+Meticulous Aim
+Lua Lens Blueprint
+Lua Madurai Lens
+Topaz Antitoxin
+Amethyst Antitoxin
+Lua Vazarin Lens
+Lua Naramon Lens
+Arcane Tanker
+Arcane Pistoleer
+Pathocyst Blueprint
+Pathocyst Blade
+Pathocyst Set
+Concentrated Arrow
+Ash Prime Set
+Limbo Prime Neuroptics Blueprint
+Energy Transfer
+Smeeta Kavat Imprint
+Chroma Prime Blueprint
+Ayatan Zambuka Sculpture
+Auto Breach
+Untraceable
+Vome
+Fass
+Twin Vipers Wraith Barrels
+Marquise Thyst
+Sahasa Kubrow Imprint
+Huras Kubrow Imprint
+Goblite Tears
+Nitro Boost
+Extreme Velocity
+Pax Charge
+Mesa Prime Set
+Mesa Prime Systems Blueprint
+Mesa Prime Chassis Blueprint
+Magus Revert
+Intruder Stasis
+Hyperstrike
+Predator
+Conic Nozzle
+Ripload
+Pennant Blueprint
+Form Up
+Quellor Blueprint
+Seeker Volley
+Reactive Storm
+Synoid Simulor
+Rubico Prime Blueprint
+Trinity Prime Chassis Blueprint
+Growing Power
+Blood For Life
+Jahu
+Ris
+Netra
+Ivara Prime Blueprint
+Aksomati Prime Blueprint
+Shedu Handle
+Spectra Vandal Barrel
+Vasca Kavat Imprint
+Primed Smite Orokin
+Grendel Neuroptics Locator
+Forward Artillery
+Munitions Vortex
+Chamber Of The Lotus Scene
+Seeking Shuriken
+Shocking Speed
+Arcane Avenger
+Nekros Prime Set
+Arcane Phantasm
+Nekros Prime Systems Blueprint
+Chroma Prime Systems Blueprint
+Last Herald
+Arcane Rage
+Chroma Prime Chassis Blueprint
+Galatine Prime Set
+Chroma Prime Neuroptics Blueprint
+Akjagara Prime Blueprint
+Strain Infection
+Quick Escape
+Void Hole
+Death Blossom
+Sentient Altar Scene
+Zylok
+Galatine Prime Handle
+Cold Arrival
+Vexing Retaliation
+Magus Lockdown
+Chesa Kubrow Imprint
+Rakta Cernos
+Pop Top
+Dual Kamas Prime Blade
+Controlled Slide
+Mending Shot
+Ironclad Flight
+Pangolin Prime Handle
+Corinth Prime Set
+Pangolin Prime Blueprint
+Overloader
+Corinth Prime Barrel
+Corinth Prime Receiver
+Damaged Necramech Casing
+Stellated Necrathene
+Purged Dagonic
+Transfusion
+Carnis Carapace
+Jugulus Carapace
+Sly Devolution
+Blast Shield
+Iatric Mycelium
+Deimos Vault Scene
+Deimos Chamber Scene
+Deimos Breakthrough Scene
+Necramech Streamline
+Grineer Galleon Cargo Scene
+Orbiter Scene
+Artillery Battery Scene
+Deimos Catacombs Scene
+Deimos Tunnels Scene
+Damzav-Vati
+Hata-Satya
+Zazvat-Kar
+Corpus Depository Scene
+Necramech Hydraulics
+Necramech Blitz
+Gas City Element Distribution Scene
+Necramech Fury
+Deimos Downfall Scene
+Guandao Prime Blade
+Zakti Prime Blueprint
+Guandao Prime Handle
+Zakti Prime Barrel
+Nezha Prime Systems Blueprint
+Nezha Prime Chassis Blueprint
+Zakti Prime Receiver
+Nezha Prime Neuroptics Blueprint
+Nezha Prime Set
+Necramech Drift
+Sporothrix Stock
+Arum Spinosa Rivet
+Martyr Symbiosis
+Necramech Friction
+Necramech Repair
+Voidrig Casing
+Morgha Set
+Ceti Lacera Blueprint
+Necramech Rage
+Morgha Barrel
+Voidrig Capsule
+Basmu Blueprint
+Voidrig Weapon Pod
+Cedo Blueprint
+Octavia Prime Blueprint
+Tenora Prime Blueprint
+Tenora Prime Receiver
+Pandero Prime Set
+Tenora Prime Stock
+Tenora Prime Set
+Pandero Prime Barrel
+Tenora Prime Barrel
+Octavia Prime Chassis Blueprint
+Octavia Prime Neuroptics Blueprint
+Pandero Prime Receiver
+Octavia Prime Systems Blueprint
+Pandero Prime Blueprint
+Octavia Prime Set
+Primed Chilling Grasp
+Equilibrium (Steam Pinnacle Pack)
+Mark Of The Beast
+Nihil's Oubliette (Key)
+Baro Void-Signal (Key)
+Requiem IV Relic
+Requiem III Relic
+Requiem II Relic
+Requiem I Relic
+Axi H3 Relic
+Axi O2 Relic
+Axi K2 Relic
+Axi R1 Relic
+Axi B2 Relic
+Axi L5 Relic
+Axi P1 Relic
+Axi M1 Relic
+Axi D1 Relic
+Axi G2 Relic
+Axi O1 Relic
+Axi V8 Relic
+Axi H2 Relic
+Axi C2 Relic
+Axi A10 Relic
+Axi T5 Relic
+Axi T4 Relic
+Axi G4 Relic
+Axi H1 Relic
+Axi S5 Relic
+Axi V9 Relic
+Axi E2 Relic
+Axi S3 Relic
+Axi B1 Relic
+Axi E1 Relic
+Axi A2 Relic
+Axi T6 Relic
+Axi C6 Relic
+Axi W2 Relic
+Axi A13 Relic
+Axi O5 Relic
+Axi S6 Relic
+Axi C1 Relic
+Axi S8 Relic
+Axi V10 Relic
+Axi S7 Relic
+Axi Z1 Relic
+Axi V5 Relic
+Axi A3 Relic
+Axi V7 Relic
+Axi C4 Relic
+Axi L3 Relic
+Axi H4 Relic
+Axi R2 Relic
+Axi A5 Relic
+Axi S4 Relic
+Axi V4 Relic
+Axi L4 Relic
+Axi A4 Relic
+Axi L2 Relic
+Axi O3 Relic
+Axi K3 Relic
+Axi G1 Relic
+Axi T1 Relic
+Axi A9 Relic
+Axi P3 Relic
+Axi D2 Relic
+Axi B3 Relic
+Axi A8 Relic
+Axi W1 Relic
+Axi B4 Relic
+Axi C5 Relic
+Axi A11 Relic
+Axi N3 Relic
+Axi V6 Relic
+Axi N5 Relic
+Axi N4 Relic
+Axi V3 Relic
+Axi N2 Relic
+Axi V2 Relic
+Axi K5 Relic
+Axi T2 Relic
+Axi S2 Relic
+Axi L1 Relic
+Axi A1 Relic
+Axi N1 Relic
+Axi O4 Relic
+Axi K4 Relic
+Axi C3 Relic
+Axi K1 Relic
+Axi A12 Relic
+Axi H5 Relic
+Axi V1 Relic
+Axi T3 Relic
+Axi G3 Relic
+Axi R3 Relic
+Axi A6 Relic
+Axi P2 Relic
+Axi A7 Relic
+Axi N6 Relic
+Axi S1 Relic
+Neo Z1 Relic
+Neo B4 Relic
+Neo K1 Relic
+Neo N7 Relic
+Neo B3 Relic
+Neo N6 Relic
+Neo R2 Relic
+Neo Z3 Relic
+Neo S12 Relic
+Neo B2 Relic
+Neo O1 Relic
+Neo S6 Relic
+Neo V5 Relic
+Neo R4 Relic
+Neo M3 Relic
+Neo P1 Relic
+Neo I2 Relic
+Neo B1 Relic
+Neo S13 Relic
+Neo N5 Relic
+Neo R1 Relic
+Neo T1 Relic
+Neo S5 Relic
+Neo N15 Relic
+Neo B7 Relic
+Neo P2 Relic
+Neo Z7 Relic
+Neo N14 Relic
+Neo G3 Relic
+Neo N11 Relic
+Neo N4 Relic
+Neo V9 Relic
+Neo N12 Relic
+Neo E2 Relic
+Neo Z6 Relic
+Neo S14 Relic
+Neo N13 Relic
+Neo D2 Relic
+Neo V4 Relic
+Neo V6 Relic
+Neo M1 Relic
+Neo S9 Relic
+Neo M2 Relic
+Neo Z2 Relic
+Neo N9 Relic
+Neo A1 Relic
+Neo V8 Relic
+Neo B5 Relic
+Neo V7 Relic
+Neo N8 Relic
+Neo L1 Relic
+Neo V3 Relic
+Neo V2 Relic
+Neo G2 Relic
+Neo R3 Relic
+Neo Z5 Relic
+Neo I1 Relic
+Neo T3 Relic
+Neo N3 Relic
+Neo H1 Relic
+Neo S8 Relic
+Neo S7 Relic
+Neo S3 Relic
+Neo D1 Relic
+Neo C1 Relic
+Neo N10 Relic
+Neo S11 Relic
+Neo E1 Relic
+Neo F1 Relic
+Neo V1 Relic
+Neo N2 Relic
+Neo H2 Relic
+Neo A2 Relic
+Neo G1 Relic
+Neo K2 Relic
+Neo N1 Relic
+Neo B6 Relic
+Neo S2 Relic
+Neo A3 Relic
+Neo Z4 Relic
+Neo T2 Relic
+Neo A4 Relic
+Neo S10 Relic
+Neo S1 Relic
+Meso T2 Relic
+Meso T1 Relic
+Meso O2 Relic
+Meso S6 Relic
+Meso M1 Relic
+Meso V5 Relic
+Meso N7 Relic
+Meso K2 Relic
+Meso A2 Relic
+Meso N4 Relic
+Meso S5 Relic
+Meso O1 Relic
+Meso C5 Relic
+Meso R3 Relic
+Meso E4 Relic
+Meso V4 Relic
+Meso N8 Relic
+Meso S4 Relic
+Meso N6 Relic
+Meso N3 Relic
+Meso F2 Relic
+Meso T4 Relic
+Meso D6 Relic
+Meso P4 Relic
+Meso O4 Relic
+Meso S3 Relic
+Meso N11 Relic
+Meso D5 Relic
+Meso G2 Relic
+Meso C6 Relic
+Meso V3 Relic
+Meso K1 Relic
+Meso H1 Relic
+Meso M2 Relic
+Meso A1 Relic
+Meso Z2 Relic
+Meso P1 Relic
+Meso B3 Relic
+Meso C2 Relic
+Meso O3 Relic
+Meso S7 Relic
+Meso B2 Relic
+Meso Z1 Relic
+Meso D2 Relic
+Meso F1 Relic
+Meso S2 Relic
+Meso L1 Relic
+Meso C4 Relic
+Meso R2 Relic
+Meso N9 Relic
+Meso B4 Relic
+Meso I1 Relic
+Meso K3 Relic
+Meso N10 Relic
+Meso P3 Relic
+Meso P2 Relic
+Meso S1 Relic
+Meso G1 Relic
+Meso C3 Relic
+Meso N5 Relic
+Meso V1 Relic
+Meso B1 Relic
+Meso E2 Relic
+Meso Z3 Relic
+Meso M3 Relic
+Meso F3 Relic
+Meso E1 Relic
+Meso N2 Relic
+Meso V2 Relic
+Meso R1 Relic
+Meso D3 Relic
+Meso T3 Relic
+Meso S8 Relic
+Meso C1 Relic
+Meso E5 Relic
+Meso N1 Relic
+Meso E3 Relic
+Meso D4 Relic
+Meso W1 Relic
+Meso V6 Relic
+Meso S9 Relic
+Meso D1 Relic
+Lith H2 Relic
+Lith Z1 Relic
+Lith B1 Relic
+Lith A2 Relic
+Lith L1 Relic
+Lith W1 Relic
+Lith V4 Relic
+Lith S6 Relic
+Lith N3 Relic
+Lith N4 Relic
+Lith M5 Relic
+Lith C6 Relic
+Lith C5 Relic
+Lith V6 Relic
+Lith V3 Relic
+Lith B4 Relic
+Lith N2 Relic
+Lith G1 Relic
+Lith I1 Relic
+Lith T5 Relic
+Lith G3 Relic
+Lith B8 Relic
+Lith D4 Relic
+Lith T3 Relic
+Lith S9 Relic
+Lith S5 Relic
+Lith C7 Relic
+Lith K4 Relic
+Lith T4 Relic
+Lith N6 Relic
+Lith B7 Relic
+Lith P5 Relic
+Lith D3 Relic
+Lith N5 Relic
+Lith P4 Relic
+Lith S4 Relic
+Lith S7 Relic
+Lith C2 Relic
+Lith K2 Relic
+Lith B6 Relic
+Lith M3 Relic
+Lith C4 Relic
+Lith M2 Relic
+Lith V2 Relic
+Lith O2 Relic
+Lith P1 Relic
+Lith T2 Relic
+Lith V5 Relic
+Lith B3 Relic
+Lith N1 Relic
+Lith K1 Relic
+Lith C1 Relic
+Lith W2 Relic
+Lith S10 Relic
+Lith P3 Relic
+Lith D2 Relic
+Lith M6 Relic
+Lith S3 Relic
+Lith H1 Relic
+Lith B2 Relic
+Lith T1 Relic
+Lith A1 Relic
+Lith M1 Relic
+Lith P2 Relic
+Lith A3 Relic
+Lith M4 Relic
+Lith G2 Relic
+Lith F2 Relic
+Lith V1 Relic
+Lith B5 Relic
+Lith C3 Relic
+Lith Z2 Relic
+Lith O1 Relic
+Lith F1 Relic
+Lith M7 Relic
+Lith K5 Relic
+Lith S2 Relic
+Lith K3 Relic
+Lith D1 Relic
+Lith L2 Relic
+Lith S8 Relic
+Lith V8 Relic
+Lith V7 Relic
+Lith S1 Relic
+Aquapulmo
+Ostimyr
+Vitreospina
+Cryptosuctus
+Barbisteo
+Kymaeros
+Amniophysi
+Lobotriscid
+Flagellocanth
+Glutinox
+Myxostomata
+Duroid
+Chondricord
+Charc Eel
+Goopolla
+Murkray
+Sharrac
+Karkina
+Mawfish
+Khut-Khut
+Yogwun
+Tralok
+Mortus Lungfish
+Glappid
+Norg
+Cuthol
+Mirewinder
+Sapcaddy
+Eye-Eye
+Echowinder
+Brickie
+Kriller
+Synathid
+Charamote
+Tromyzon
+Scrubber
+Tink
+Recaster
+Longwinder
+Hemorrhage
+Auto Omni
+Votive Onslaught
+Cordon
+Internal Bleeding
+Fortifying Fire
+Nautilus Cerebrum
+Nautilus Blueprint
+Protective Shots
+Crimson Fugue
+Scourging Warheads
+Worm's Torment
+Defensive Fire
+Orgone Tuning Matrix
+Indomitable Matrix
+Nautilus Set
+Ironclad Matrix
+Granum's Nemesis
+Onslaught Matrix
+Waveband Disruptor
+Nautilus Carapace
+Raider Matrix
+Phoenix Blaze
+Nautilus Systems
+Carmine Penta Receiver
+Carmine Penta Stock
+Carmine Penta Barrel
+Carmine Penta Blueprint
+Carmine Penta Set
+Athodai Blueprint
+Athodai Barrel
+Athodai Receiver
+Athodai Set
+Halikar Wraith
+Epitaph Receiver
+Epitaph Set
+Epitaph Barrel
+Epitaph Blueprint
+Deimos Depths Scene
+Deimos Heart Scene
+Deimos Cenote Scene
+Deimos Crypt Scene
+Infested Ship Hologram Scene
+The Cold Below Scene
+Deimos Forsaken Scene
+Deimos Membrane Scene
+Deimos Verge Scene
+Axi G5 Relic
+Neo K3 Relic
+Neo Z8 Relic
+Meso R4 Relic
+Lith C8 Relic
+Lith T6 Relic
+Saturn Six Scene
+Meso P5 Relic
+Lith K6 Relic
+Axi G6 Relic
+Volnus Prime Handle
+Volnus Prime Head
+Neo T4 Relic
+Meso T5 Relic
+Meso Z4 Relic
+Neo V10 Relic
+Gara Prime Blueprint
+Volnus Prime Set
+Gara Prime Set
+Gara Prime Neuroptics Blueprint
+Gara Prime Systems Blueprint
+Astilla Prime Blueprint
+Axi N7 Relic
+Astilla Prime Receiver
+Astilla Prime Barrel
+Astilla Prime Set
+Lith A4 Relic
+Axi I1 Relic
+Astilla Prime Stock
+Volnus Prime Blueprint
+Neo A5 Relic
+Gara Prime Chassis Blueprint
+Lith G4 Relic
+Repair Dispensary
+Primed Tactical Pump
+Airburst Rounds
+Neo D3 Relic
+Fused Reservoir
+Hearty Nourishment
+Axi T7 Relic
+Prisma Machete
+Opticor Vandal
+Galvanized Hell
+Malicious Code
+Cela Bracket Blueprint
+Evasive Denial
+Galvanized Diffusion
+Swift Mercy
+Wanz Stabilizer Blueprint
+Galvanized Aptitude
+Zubb Bracket Blueprint
+Hec Hound Blueprint
+Galvanized Scope
+Galvanized Acceleration
+Power Drain
+Counterbalance
+Hinta Stabilizer
+Repo Audit
+Galvanized Crosshairs
+Garmr Core Blueprint
+Focused Prospectus
+Dorma Hound Blueprint
+Hard Reset
+Bhaira Hound Blueprint
+Galvanized Shot
+Reflex Denial
+Adlet Core Blueprint
+Aerial Prospectus
+Synergized Prospectus
+Frak Stabilizer Blueprint
+Raiju Core Blueprint
+Firewall
+Galvanized Savvy
+Urga Bracket Blueprint
+Null Audit
+Oull
+Diversified Denial
+Equilibrium Audit
+Galvanized Chamber
+New Loka Combat Emote
+Cephalon Suda Piloting Emote
+Red Veil Chest Piece
+Perrin Piloting Emote
+Suda Chest Piece
+Arbiters Piloting Emote
+Red Veil Knee Guards
+Secondary Merciless
+Primary Merciless
+Meridian Chest Plate
+Meridian Armor Set
+Meridian Arm Spurs
+Cephalon Suda Gunnery Emote
+Solaris Leg Spurs
+Lokan Knee Spurs
+Arbiters Combat Emote
+Steel Meridian Combat Emote
+Steel Meridian Piloting Emote
+Secondary Dexterity
+Lokan Arm Plates
+Suda Leg Spurs
+Steel Meridian Endurance Emote
+Perrin Armor Set
+Ostron Chest Guard
+Cephalon Suda Endurance Emote
+Perrin Leg Guards
+Hexis Chest Plate
+Suda Arm Spurs
+Suda Armor Set
+Perrin Chest Piece
+Perrin Endurance Emote
+Hexis Arm Plates
+Solaris Chest Marker
+Solaris Armor Set
+Red Veil Engineering Emote
+New Loka Engineering Emote
+Red Veil Arm Insignia
+Lokan Armor Set
+New Loka Piloting Emote
+Solaris Arm Guards
+Arbiters Engineering Emote
+Ostron Armor Set
+Perrin Arm Guards
+Lokan Chest Piece
+Hexis Spurs
+Cephalon Suda Engineering Emote
+Hexis Armor Set
+Arbiters Gunnery Emote
+New Loka Endurance Emote
+Arbiters Endurance Emote
+Secondary Deadhead
+Steel Meridian Gunnery Emote
+Ostron Leg Guards
+Meridian Leg Spurs
+Ostron Arm Guards
+Cephalon Suda Combat Emote
+Red Veil Piloting Emote
+Primary Deadhead
+Red Veil Armor Set
+Primary Dexterity
+Ambassador Barrel
+Ambassador Set
+Ambassador Receiver
+Ambassador Stock
+Ambassador Blueprint
+Nidus Prime Blueprint
+Meso B5 Relic
+Neo N17 Relic
+Strun Prime Set
+Meso S10 Relic
+Lith K7 Relic
+Lith N8 Relic
+Neo P3 Relic
+Magnus Prime Set
+Primed Magazine Warp
+Axi M2 Relic
+Nidus Prime Set
+Strun Prime Blueprint
+Axi I2 Relic
+Butcher's Revelry
+Magnus Prime Blueprint
+Lith N7 Relic
+Strun Prime Receiver
+Meso B6 Relic
+Neo T5 Relic
+Strun Prime Barrel
+Nidus Prime Systems Blueprint
+Strun Prime Stock
+Lith T7 Relic
+Axi A14 Relic
+Nidus Prime Neuroptics Blueprint
+Nidus Prime Chassis Blueprint
+Magnus Prime Receiver
+Magnus Prime Barrel
+Neo N16 Relic
+Ghoulsaw Blade
+Ghoulsaw Grip
+Ghoulsaw Engine
+Ghoulsaw Set
+Ghoulsaw Chassis
+Ghoulsaw Blueprint
+Primed Ammo Stock
+Vastilok
+Vampiric Grasp
+Champion's Blessing
+Lith L3 Relic
+Swift Bite
+Meso B7 Relic
+Meso P6 Relic
+Neo A6 Relic
+Neo H3 Relic
+Lith R1 Relic
+The Relentless Lost
+Lith K8 Relic
+Neo D4 Relic
+Axi D3 Relic
+Axi M3 Relic
+Lith N9 Relic
+Axi P4 Relic
+Knell Prime Set
+Boreal's Contempt
+Nira's Anguish
+Meso A3 Relic
+Axi S9 Relic
+Amar's Contempt
+Scourge Prime Blade
+Lith T8 Relic
+Harrow Prime Blueprint
+Harrow Prime Set
+Meso G3 Relic
+Meso I2 Relic
+Amar's Anguish
+Nira's Hatred
+Knell Prime Barrel
+Axi T8 Relic
+Lith H3 Relic
+Axi C7 Relic
+Harrow Prime Neuroptics Blueprint
+Scourge Prime Barrel
+Knell Prime Blueprint
+Boreal's Hatred
+Lith S11 Relic
+Neo K4 Relic
+Neo N18 Relic
+Amar's Hatred
+Lith T9 Relic
+Boreal's Anguish
+Harrow Prime Chassis Blueprint
+Scourge Prime Set
+Nira's Contempt
+Axi K6 Relic
+Harrow Prime Systems Blueprint
+Lith C9 Relic
+Scourge Prime Handle
+Knell Prime Receiver
+Scourge Prime Blueprint
+Meso S11 Relic
+Thermal Transfer
+Neo P4 Relic
+Gourmand
+Praghasa Throne Room Scene
+Surging Blades
+Biting Frost
+Lith N10 Relic
+Primed Sniper Ammo Mutation
+Garuda Prime Chassis Blueprint
+Corvas Prime Set
+Lith N11 Relic
+Nagantaka Prime Set
+Axi K7 Relic
+Lith S12 Relic
+Corvas Prime Barrel
+Corvas Prime Blueprint
+Nagantaka Prime Receiver
+Nagantaka Prime Blueprint
+Lith H4 Relic
+Corvas Prime Stock
+Nagantaka Prime Stock
+Garuda Prime Systems Blueprint
+Meso G4 Relic
+Axi S11 Relic
+Lith Z3 Relic
+Corvas Prime Receiver
+Axi S10 Relic
+Lith G5 Relic
+Meso P7 Relic
+Lith N12 Relic
+Nagantaka Prime Barrel
+Garuda Prime Set
+Neo N20 Relic
+Garuda Prime Neuroptics Blueprint
+Meso N12 Relic
+Axi G7 Relic
+Neo C2 Relic
+Neo M4 Relic
+Garuda Prime Blueprint
+Zariman Chrysalith Scene
+Zariman Reliquary Drive Scene
+Zariman Lunaro Court Scene
+Emergence Dissipate
+Molt Vigor
+Galeforce Dawn
+Zariman Cargo Bay Scene
+Zariman Schoolyard Scene
+Zariman Angel Roost Scene
+Zariman Serenity Levels Scene
+Emergence Renewed
+Zariman Dormizone Scene
+Eternal Eradicate
+Zariman Hall Of Legems Scene
+Zariman Brig Scene
+Zariman Albrecht Park Scene
+Molt Efficiency
+Emergence Savior
+Zariman Agri-Zone Scene
+Zariman Docking Bay Scene
+Cascadia Overcharge
+Range Advantage
+Combat Reload
+Zariman Habitation Zone Scene
+Zariman Amphitheatre Scene
+Laetum Blueprint
+Aeolak Receiver Blueprint
+Hespar Handle Blueprint
+Praedos Blueprint
+Aeolak Barrel Blueprint
+Aeolak Set
+Hespar Set
+Hespar Blade Blueprint
+Aeolak Stock Blueprint
+Phenmor Blueprint
+Eternal Onslaught
+Dog Days Night Scene
+Innodem Blueprint
+Felarx Blueprint
+Molt Reconstruct
+Molt Augmented
+Parallax Set
+Eternal Logistics
+Parallax Avionics Blueprint
+Parallax Engines Blueprint
+Parallax Fuselage Blueprint
+Cascadia Empowered
+Prisma Shade Set
+Fractalized Reset
+Cascadia Flare
+Prisma Burst Laser
+Cascadia Accuracy
+Crescent Vulpaphyla Imprint
+Sly Vulpaphyla Imprint
+Medjay Predasite Imprint
+Vizier Predasite Imprint
+Panzer Vulpaphyla Imprint
+Pharaoh Predasite Imprint
+Hystrix Prime Blueprint
+Axi K10 Relic
+Axi N8 Relic
+Meso O5 Relic
+Meso P8 Relic
+Neo N21 Relic
+Khora Prime Chassis Blueprint
+Dual Keres Prime Set
+Axi K9 Relic
+Hystrix Prime Set
+Axi G8 Relic
+Meso H3 Relic
+Dual Keres Prime Handle
+Khora Prime Set
+Khora Prime Blueprint
+Neo G4 Relic
+Hystrix Prime Receiver
+Neo D5 Relic
+Lith K9 Relic
+Axi K8 Relic
+Vile Discharge
+Meso H2 Relic
+Hystrix Prime Barrel
+Meso V7 Relic
+Khora Prime Neuroptics Blueprint
+Dual Keres Prime Blueprint
+Neo S15 Relic
+Axi S12 Relic
+Critical Precision
+Khora Prime Systems Blueprint
+Dual Keres Prime Blade
+Peculiar Audience
+Archon Intensify
+Lith N13 Relic
+Neo Z9 Relic
+Archon Continuity
+Meso W2 Relic
+Neo E3 Relic
+Archon Flow
+Archon Vitality
+Axi T9 Relic
+Archon Stretch
+Lith S13 Relic
+Lith H6 Relic
+Tatsu Prime Blade
+Neo T6 Relic
+Meso P10 Relic
+Revenant Prime Chassis Blueprint
+Revenant Prime Systems Blueprint
+Tatsu Prime Set
+Tatsu Prime Blueprint
+Meso N13 Relic
+Revenant Prime Set
+Phantasma Prime Barrel
+Lith P6 Relic
+Revenant Prime Neuroptics Blueprint
+Tatsu Prime Handle
+Meso K4 Relic
+Phantasma Prime Blueprint
+Phantasma Prime Set
+Lith H5 Relic
+Axi T10 Relic
+Phantasma Prime Receiver
+Axi N9 Relic
+Lith R2 Relic
+Revenant Prime Blueprint
+Meso P9 Relic
+Lith S14 Relic
+Phantasma Prime Stock
+Lith B9 Relic
+Axi A15 Relic
+Axi S13 Relic
+Neo S16 Relic
+Neo I3 Relic
+Meso O6 Relic
+Vericres
+Conjunction Voltage
+Primary Frostbite
+Arcane Rise
+Perigale Set
+Veilbreak Forest Scene
+Perigale Stock
+Sarofang Blade
+Veilbreak Factory Scene
+Lua Circulus Scene
+Arcane Blessing
+Sarofang Handle
+Sarofang Set
+Veilbreak Murex Scene
+Perigale Barrel
+Perigale Receiver
+Lith G6 Relic
+Axi S14 Relic
+Meso T6 Relic
+Neo C3 Relic
+Baruuk Prime Chassis Blueprint
+Meso A4 Relic
+Axi N10 Relic
+Axi B5 Relic
+Neo A8 Relic
+Meso V8 Relic
+Baruuk Prime Blueprint
+Neo K5 Relic
+Meso K5 Relic
+Lith V9 Relic
+Lith B10 Relic
+Neo A7 Relic
+Axi G9 Relic
+Baruuk Prime Systems Blueprint
+Neo D6 Relic
+Axi F1 Relic
+Baruuk Prime Neuroptics Blueprint
+Meso R5 Relic
+Lith A5 Relic
+Baruuk Prime Set
+Lith H7 Relic
+Cobra & Crane Prime Guard
+Afuris Prime Barrel
+Afuris Prime Set
+Afuris Prime Link
+Cobra & Crane Prime Blueprint
+Afuris Prime Blueprint
+Cobra & Crane Prime Blade
+Cobra & Crane Prime Hilt
+Cobra & Crane Prime Set
+Afuris Prime Receiver
+Corufell Receiver
+Primary Plated Round
+Shattered Storm
+Cathode Current
+Arcane Steadfast
+Lith D5 Relic
+Steflos Barrel
+Steflos Stock
+Steflos Set
+Corufell Set
+Corufell Handle
+Lith P7 Relic
+Arcane Double Back
+Secondary Kinship
+Steflos Receiver
+Merulina Guardian
+Mesmer Shield
+Neo R5 Relic
+Secondary Encumber
+Neo A9 Relic
+Meso L2 Relic
+Axi M4 Relic
+Citrine's Last Wish Factory Scene
+Corufell Barrel
+Hildryn Prime Blueprint
+Hildryn Prime Systems Blueprint
+Shade Prime Blueprint
+Hildryn Prime Set
+Shade Prime Systems
+Larkspur Prime Set
+Hildryn Prime Neuroptics Blueprint
+Larkspur Prime Barrel
+Shade Prime Cerebrum
+Shade Prime Set
+Larkspur Prime Stock
+Hildryn Prime Chassis Blueprint
+Larkspur Prime Receiver
+Shade Prime Carapace
+Larkspur Prime Blueprint
+Lith S15 Relic
+Meso N14 Relic
+Lith R3 Relic
+Meso D7 Relic
+Axi H6 Relic
+Lith B11 Relic
+Meso S12 Relic
+Lith H8 Relic
+Meso H4 Relic
+Axi G10 Relic
+Axi A16 Relic
+Neo S17 Relic
+Neo N22 Relic
+Axi B6 Relic
+Axi K11 Relic
+Lith K10 Relic
+Neo L2 Relic
+Meso P11 Relic
+Primary Obstruct
+Arcane Intention
+Secondary Shiver
+Lith V10 Relic
+Meso P12 Relic
+Longbow Sharpshot
+Netherbarrow Region Scene
+Shotgun Vendetta
+Undercroft Opera Scene
+Neo A10 Relic
+Axi K12 Relic
+Axi I3 Relic
+Magus Aggress
+Meso C7 Relic
+Undercroft Park Scene
+Castle Town Scene
+Mainland Hamlets Scene
+Arcane Reaper
+Upperhaven Scene
+Mountain's Edge
+Orowyrm Arena Scene
+Primary Exhilarate
+Cinta Upper Limb Blueprint
+Cinta Grip Blueprint
+Cinta String Blueprint
+Cinta Set
+Cinta Lower Limb Blueprint
+Amphitheater Scene
+Namaes
+Haav
+Xiran
+Teshin's Cave Scene
+Seonn
+Archarbor Scene
+Inaak
+Prisma Lenz
+Sentient Surge
+Sentient Barrage
+Arcane Power Ramp
+Primary Blight
+Secondary Outburst
+Akimbo Slip Shot
+Rauta Barrel
+Rauta Set
+Rauta Receiver
+Rauta Stock
+Neo L3 Relic
+Meso C8 Relic
+Wisp Prime Chassis Blueprint
+Gunsen Prime Blueprint
+Gunsen Prime Set
+Fulmin Prime Blueprint
+Gunsen Prime Handle
+Fulmin Prime Barrel
+Neo C4 Relic
+Neo D7 Relic
+Wisp Prime Set
+Fulmin Prime Set
+Fulmin Prime Stock
+Wisp Prime Neuroptics Blueprint
+Neo F2 Relic
+Neo N23 Relic
+Lith H9 Relic
+Meso G5 Relic
+Intrepid Stand
+Axi W3 Relic
+Gunsen Prime Blade
+Ulfrun's Endurance
+Lith W3 Relic
+Meso P13 Relic
+Temporal Erosion
+Wisp Prime Systems Blueprint
+Shadow Haze
+Fulmin Prime Receiver
+Meso K6 Relic
+Axi H7 Relic
+Neo T7 Relic
+Wisp Prime Blueprint
+Eximus Advantage
+Metamorphic Magazine
+Dais Cay Scene
+Undercroft Outskirts Scene
+Little Cay Scene
+Crater Cay Scene
+Winding Isles Scene
+Basin Cay Scene
+Undercroft Dax Camp Scene
+Undercroft Township Scene
+Undercroft Lunaro Scene
+Prisma Ohma
+Lith L4 Relic
+Undercroft Lodging Scene
+Axi D4 Relic
+Meso F4 Relic
+Neo B8 Relic
+Lith M8 Relic
+Lith O3 Relic
+Lith G7 Relic
+Meso N15 Relic
+Meso Z5 Relic
+Axi P5 Relic
+Axi A17 Relic
+Axi L6 Relic
+Axi G12 Relic
+Axi G11 Relic
+Neo D8 Relic
+Neo K7 Relic
+Neo K6 Relic
+Neo S18 Relic
+Neo Z10 Relic
+Meso W3 Relic
+Meso C9 Relic
+Meso P14 Relic
+Meso B8 Relic
+Meso M4 Relic
+Lith N14 Relic
+Lith T10 Relic
+Lith C10 Relic
+Lith R4 Relic
+Lith G8 Relic
+Grendel Prime Set
+Grendel Prime Blueprint
+Grendel Prime Neuroptics Blueprint
+Grendel Prime Chassis Blueprint
+Grendel Prime Systems Blueprint
+Masseter Prime Set
+Masseter Prime Blueprint
+Masseter Prime Blade
+Masseter Prime Handle
+Zylok Prime Set
+Zylok Prime Blueprint
+Zylok Prime Barrel
+Zylok Prime Receiver
+Catalyzing Shields
+Astral Bond
+Duplex Bond
+Tenacious Bond
+Tandem Bond
+Contagious Bond
+Mystic Bond
+Covert Bond
+Restorative Bond
+Momentous Bond
+Aerial Bond
+Manifold Bond
+Vicious Bond
+Seismic Bond
+Reinforced Bond
+Abyssal Beacon
+Gotva Prime
+Neo T8 Relic
+Albrecht’s Archive Scene
+Albrecht’s Bureau Scene
+Sanctum Anatomica Scene
+Fragmented Gorge Scene
+Fabrica Anatomica Scene
+Energy Nexus
+Precision Intensify
+Cleanse The Murmur
+Atomic Fallout
+Shivering Contagion
+Bane Of The Murmur
+Volatile Variant
+Radiated Reload
+Expel The Murmur
+Critical Mutation
+Accelerated Isotope
+Focus Radon
+Ready Steel
+Xata Invocation
+Vome Invocation
+Ris Invocation
+Netra Invocation
+Lohk Canticle
+Khra Canticle
+Jahu Canticle
+Fass Canticle
+Opportunity's Reach
+Condition's Perfection
+Master's Edge
+Dreamer's Wrath
+Discipline's Merit
+Containment Breach
+Smite The Murmur
+Primed Redirection
+Mandonel Set
+Mandonel Blueprint
+Mandonel Barrel
+Mandonel Receiver
+Mandonel Stock
+Melee Influence
+Melee Retaliation
+Melee Crescendo
+Melee Vortex
+Melee Animosity
+Melee Exposure
+Melee Duplicate
+Melee Fortification
+Primed Convulsion
+Gauss Prime Set
+Gauss Prime Blueprint
+Gauss Prime Neuroptics Blueprint
+Gauss Prime Chassis Blueprint
+Gauss Prime Systems Blueprint
+Axi A18 Relic
+Axi P6 Relic
+Axi D5 Relic
+Axi B7 Relic
+Neo A11 Relic
+Neo W1 Relic
+Neo F3 Relic
+Meso B9 Relic
+Meso G6 Relic
+Meso A5 Relic
+Meso H6 Relic
+Meso H5 Relic
+Lith G10 Relic
+Lith P8 Relic
+Lith G9 Relic
+Lith R5 Relic
+Lith A6 Relic
+Lith C11 Relic
+Akarius Prime Set
+Akarius Prime Blueprint
+Akarius Prime Barrel
+Akarius Prime Receiver
+Akarius Prime Link
+Acceltra Prime Set
+Acceltra Prime Blueprint
+Acceltra Prime Barrel
+Acceltra Prime Receiver
+Acceltra Prime Stock
+Dreamer's Bond
+Critical Meltdown
+Axi V11 Relic
+Axi C8 Relic
+Neo P5 Relic
+Meso C10 Relic
+Meso A6 Relic
+Lith G11 Relic
+Lith T11 Relic
+Dante's Retreat Scene
+The Abandoned Vessel Scene
+Loyal Merulina
+Wrath Of Ukko
+Elusive Retribution
+Divine Retribution
+Damage Decoy
+Parasitic Vitality
+Axios Javelineers
+Recrystalize
+Warrior's Rest
+Guardian Armor
+Valence Formation
+Protea Prime Set
+Protea Prime Blueprint
+Protea Prime Neuroptics Blueprint
+Protea Prime Chassis Blueprint
+Protea Prime Systems Blueprint
+Axi B8 Relic
+Axi F2 Relic
+Axi P7 Relic
+Neo M5 Relic
+Neo A12 Relic
+Neo P6 Relic
+Neo O2 Relic
+Meso W5 Relic
+Meso W4 Relic
+Meso G7 Relic
+Meso V9 Relic
+Lith T12 Relic
+Lith P9 Relic
+Velox Prime Set
+Velox Prime Blueprint
+Velox Prime Barrel
+Velox Prime Receiver
+Okina Prime Set
+Okina Prime Blueprint
+Okina Prime Handle
+Okina Prime Blade
+Clip Delegation
+Photon Overcharge
+Cinta Blueprint
+Arcane Ice Storm
+Secondary Surge
+Arcane Battery
+Secondary Fortifier
+The Ballroom Simulacrum
+The Citadel Simulacrum
+Orowyrm Arena Simulacrum
+Sanctum Simulacrum
+Zanuka Arena Simulacrum
+Grineer Asteroid Simulacrum
+Orokin Derelict Simulacrum
+Ambulas Arena Simulacrum
+Red Veil Temple Simulacrum
+Moonlit Courtyard Simulacrum
+Shotgun Elementalist
+Semi-Shotgun Cannonade
+Rifle Elementalist
+Semi-Rifle Cannonade
+Pistol Elementalist
+Semi-Pistol Cannonade
+Melee Elementalist
+Dark Propagation
+Temporal Artillery
+Spectral Spirit
+Wrecking Wall
+Melee Afflictions
+Primed Dual Rounds
+Lith E1 Relic
+Lith K11 Relic
+Lith H10 Relic
+Meso S14 Relic
+Meso B10 Relic
+Meso N16 Relic
+Meso S13 Relic
+Neo G5 Relic
+Axi R4 Relic
+Axi T11 Relic
+Axi S15 Relic
+Primed Deadly Efficiency
+Neo G6 Relic
+Axi M5 Relic
+Akmagnus Prime Set
+Akmagnus Prime Blueprint
+Akmagnus Prime Link
+Sevagoth Prime Set
+Sevagoth Prime Blueprint
+Sevagoth Prime Neuroptics Blueprint
+Sevagoth Prime Chassis Blueprint
+Sevagoth Prime Systems Blueprint
+Axi S17 Relic
+Axi S16 Relic
+Axi O6 Relic
+Neo P7 Relic
+Neo B9 Relic
+Neo Z11 Relic
+Neo G7 Relic
+Neo A13 Relic
+Neo E4 Relic
+Meso F5 Relic
+Meso A7 Relic
+Meso H7 Relic
+Meso N17 Relic
+Lith G12 Relic
+Lith N15 Relic
+Lith W4 Relic
+Lith C12 Relic
+Epitaph Prime Set
+Epitaph Prime Blueprint
+Epitaph Prime Barrel
+Epitaph Prime Receiver
+Nautilus Prime Set
+Nautilus Prime Blueprint
+Nautilus Prime Cerebrum
+Nautilus Prime Carapace
+Nautilus Prime Systems
+Burning Hate
+Unseen Dread
+Prey Of Dynar
+Aegis Gale
+Coil Recharge
+Gastro
+Higasa Serration
+Amanata Pressure
+Sepsis Claws
+Burning Claws
+Shocking Claws
+Chilling Claws
+Assassin Posture
+Frenzied Posture
+Protector Posture
+Persistent Posture
+Elusive Posture
+Balanced Posture
+Resourceful Retriever
+Loyal Retriever
+Prosperous Retriever
+Precision Conditioning
+Immunity Resistance
+Magnetic Strike
+Bell Ringer
+Bloodthirst
+Disabling Conditioning
+Cull The Weak
+Brute Conditioning
+Galvanized Steel
+Galvanized Reflex
+Galvanized Elementalist
+Lith D6 Relic
+Meso H8 Relic
+Neo C5 Relic
+Neo K8 Relic
+Axi G13 Relic
+Axi N11 Relic
+Xaku Prime Set
+Xaku Prime Blueprint
+Xaku Prime Neuroptics Blueprint
+Xaku Prime Chassis Blueprint
+Xaku Prime Systems Blueprint
+Trumna Prime Set
+Trumna Prime Blueprint
+Trumna Prime Barrel
+Trumna Prime Receiver
+Trumna Prime Stock
+Quassus Prime Set
+Quassus Prime Blueprint
+Quassus Prime Handle
+Quassus Prime Blade
+Axi A19 Relic
+Axi G14 Relic
+Axi H8 Relic
+Axi T12 Relic
+Neo W2 Relic
+Neo G8 Relic
+Neo Q1 Relic
+Neo L4 Relic
+Meso V10 Relic
+Meso T7 Relic
+Meso E6 Relic
+Meso G8 Relic
+Lith M9 Relic
+Lith G13 Relic
+Lith N16 Relic
+Lith X1 Relic
+Arcane Crepuscular
+Arcane Impetus
+Primary Crux
+Secondary Enervate
+Melee Doughty
+Arcane Camisado
+Arcane Bellicose
+Arcane Truculence
+Mall Rotunda Simulacrum
+Höllvanian Courtyard Simulacrum
+Höllvanian Terrace In Summer Scene
+Tech Titan Electronics Store Scene
+Höllvanian Intersection In Winter Scene
+Höllvania Central Mall Subway
+Höllvanian Tenements In Summer Scene
+Höllvanian Historic Quarter In Spring Scene
+Höllvanian Old Town In Fall Scene
+Orbit Arcade Scene
+Central Mall Backroom Scene
+Magnetic Welt
+Magnetic Strafe
+Radon Claws
+Magnetic Claws
+Primary Acuity
+Spectral Serration
+Magnetic Capacity
+Pistol Acuity
+Merciless Gunfight
+Magnetic Rush
+Worthy Comradery
+Summoner's Wrath
+Magnetized Cycle
+Magnetized Core
+Reconifex Set
+Reconifex Barrel
+Reconifex Receiver
+Reconifex Stock
+Vesper 77 Set
+Vesper 77 Barrel
+Vesper 77 Receiver
+Vesper 77 Handle
+Cedo Prime Set
+Cedo Prime Blueprint
+Cedo Prime Receiver
+Cedo Prime Barrel
+Cedo Prime Stock
+Dual Zoren Prime Set
+Dual Zoren Prime Blueprint
+Dual Zoren Prime Handle
+Dual Zoren Prime Blade
+Lavos Prime Set
+Lavos Prime Blueprint
+Lavos Prime Neuroptics Blueprint
+Lavos Prime Chassis Blueprint
+Lavos Prime Systems Blueprint
+Axi P9 Relic
+Axi M6 Relic
+Axi Z2 Relic
+Axi F3 Relic
+Axi P8 Relic
+Neo D9 Relic
+Neo T9 Relic
+Neo X1 Relic
+Neo C6 Relic
+Meso A8 Relic
+Lith S16 Relic
+Lith A7 Relic
+Lith Q1 Relic
+Lith L5 Relic
+Meso P15 Relic
+Biotic Rounds
+Leaded Gas
+Lith S17 Relic
+Meso S15 Relic
+Meso M5 Relic
+Neo N19 Relic
+Neo S19 Relic
+Axi N12 Relic
+Worm Away
+Trojan Tracker
+Soft Safe
+Anti-V
+ByteRyte
+Keep-Clean
+Drive-Duster
+Computer Cop
+Quick Correct
+Immuno Shield
+Instant Secure
+Threat Blocker
+Turbo Protect
+Technocyte Coda Stadium Scene
+Cataclysmic Gate
+Omikuji's Fortune
+Conductive Sphere
+Fused Crucible
+Arcane Escapist
+Arcane Hot Shot
+Arcane Universal Fallout
+Riot-848 Set
+Riot-848 Barrel Blueprint
+Riot-848 Receiver Blueprint
+Riot-848 Stock Blueprint
+Purgator 1 Set
+Purgator 1 Barrel
+Purgator 1 Receiver
+Purgator 1 Stock
+EFV-5 Jupiter Set
+EFV-5 Jupiter Barrel
+EFV-5 Jupiter Receiver
+EFV-5 Jupiter Stock
+EFV-8 Mars Set
+EFV-8 Mars Barrel
+EFV-8 Mars Receiver
+EFV-8 Mars Stock
+Dual Viciss Set
+Dual Viciss Blade
+Dual Viciss Hilt
+Primed Steady Hands
+Primed Stabilizer
+Primed Counterbalance
+Lith A8 Relic
+Lith Q2 Relic
+Lith Y1 Relic
+Lith Z4 Relic
+Meso K7 Relic
+Meso P16 Relic
+Neo A14 Relic
+Neo D10 Relic
+Neo G9 Relic
+Axi N13 Relic
+Axi V12 Relic
+Axi Y1 Relic
+Yareli Prime Set
+Yareli Prime Blueprint
+Yareli Prime Neuroptics Blueprint
+Yareli Prime Chassis Blueprint
+Yareli Prime Systems Blueprint
+Daikyu Prime Set
+Daikyu Prime Blueprint
+Daikyu Prime Lower Limb
+Daikyu Prime Upper Limb
+Daikyu Prime Grip
+Daikyu Prime String
+Kompressa Prime Set
+Kompressa Prime Blueprint
+Kompressa Prime Barrel
+Kompressa Prime Receiver
+Axi C9 Relic
+Höllvanian Collapsed Underground Scene
+Lavo's Playplace Scene
+Höllvanian Subway Junction Scene
+Lith T13 Relic
+Lith A9 Relic
+Meso R6 Relic
+Neo P8 Relic
+Axi B9 Relic
+Meso T8 Relic
+Lith M10 Relic
+Pain Points
+Spontaneous Singularity
+Volatile Recompense
+Prismatic Companion
+Razor Mortar
+Jade's Judgment
+Primed Smite The Murmur
+Octopede Arena Scene
+Isleweaver Cloud Islet Scene
+Isleweaver Drift Atoll Scene
+Scholar's Landing Scene
+Duviri Throne Room Scene
+Solstice Square Stage Scene
+Kullervo's Hold Scene
+Primed Expel The Murmur
+Primed Cleanse The Murmur
+Caliban Prime Set
+Caliban Prime Blueprint
+Caliban Prime Neuroptics Blueprint
+Caliban Prime Chassis Blueprint
+Caliban Prime Systems Blueprint
+Vadarya Prime Set
+Vadarya Prime Blueprint
+Vadarya Prime Barrel
+Vadarya Prime Receiver
+Vadarya Prime Stock
+Venato Prime Set
+Venato Prime Blueprint
+Venato Prime Blade
+Venato Prime Handle
+Axi Y2 Relic
+Axi C10 Relic
+Axi V13 Relic
+Axi S18 Relic
+Neo A15 Relic
+Meso G9 Relic
+Meso V12 Relic
+Meso V11 Relic
+Meso L3 Relic
+Lith K12 Relic
+Lith A10 Relic
+Lith E2 Relic
+Lith O4 Relic
+Lith N17 Relic
+Lith C13 Relic
+Helminth Charger Imprint
+Primed Bane Of The Murmur
+Lingering Transmutation
+Untime Rift
+Tharros Lethality
+Reverse Rotorswell
+Ayatan Chattraka Sculpture
+Deepmines Forward Base Scene
+Deepmines Scene
+Deepmines Caves Scene
+Deepmines Lab Scene
+Deepmines Nutrient Plant Scene
+Five Fates Scene
+The Teacher Dojo Scene
+The Teacher Earth Scene
+The Teacher Reactor Scene
+The Teacher Ship Scene
+Peculiar End
+Dreadful Killshot
+Axi S19 Relic
+Axi W4 Relic
+Neo H4 Relic
+Meso G10 Relic
+Lith F3 Relic
+Lith L6 Relic
+Necrophagic Vigor
+Gyre Prime Set
+Gyre Prime Blueprint
+Gyre Prime Neuroptics Blueprint
+Gyre Prime Chassis Blueprint
+Gyre Prime Systems Blueprint
+Alternox Prime Set
+Alternox Prime Blueprint
+Alternox Prime Barrel
+Alternox Prime Receiver
+Alternox Prime Stock
+Kestrel Prime Set
+Kestrel Prime Blueprint
+Kestrel Prime Grip
+Kestrel Prime Blade
+Axi T13 Relic
+Axi A20 Relic
+Neo T10 Relic
+Neo O3 Relic
+Neo C7 Relic
+Neo P9 Relic
+Neo K9 Relic
+Meso X1 Relic
+Meso A9 Relic
+Meso Y1 Relic
+Meso V14 Relic
+Meso P17 Relic
+Meso V13 Relic
+Lith G14 Relic
+Lith N18 Relic
+Lith D7 Relic
+Arcane Persistence
+Arcane Expertise
+Arcane Circumvent
+Primary Bulwark
+Primary Overcharge
+Secondary Irradiate
+Primary Debilitate
+Arcane Concentration
+Melee Careen
+Harrowing Spire
+Lith L7 Relic
+Roathe's Oblivion Arena
+Lyon's Room Scene
+Marie's Room Scene
+La Cathédrale Scene
+Boro Overlook Scene
+Makvos Cannon Scene
+World-Seeder Scene
+Perita Manifestation Scene
+Fort Tennadis Scene
+Ubri-Kaneph
+Sey-Taph
+Lashta-Vak
+Empazu-Shol
+Metem-Erun
+Da-Ren
+Ulashta-Shol
+Sil-Tabol
+Evir-Ti
+Yar Dal
+Metem-Hakh
+Kaal-Zidi
+Vikla-Safor
+Talsek-An
+Esti Vel-Ikha
+Hok-Kaal
+Omn-Evi
+Lorun-Tash
+Vik-Anam
+Hayan-Dabor
+Vanguard C1 Relic
+Vanguard P1 Relic
+Vanguard M1 Relic
+Vanguard E1 Relic
+Primed Venomous Clip
+Zid-an Sek-eel
+Zid-an Asheir
+Zid-an Uskos
+Zid-an Haras
+Zid-an Osbok
+Primed Ammo Chain
+Requiem Eterna Relic
+Velox Conclusion
+Sentient Incision
+Truth's Flame
+Haunted Vesper Relay Scene
+Voruna Prime Set
+Voruna Prime Blueprint
+Voruna Prime Neuroptics Blueprint
+Voruna Prime Chassis Blueprint
+Voruna Prime Systems Blueprint
+Perigale Prime Set
+Perigale Prime Blueprint
+Perigale Prime Barrel
+Perigale Prime Receiver
+Perigale Prime Stock
+Sarofang Prime Set
+Sarofang Prime Blueprint
+Sarofang Prime Blade
+Sarofang Prime Handle
+Axi V14 Relic
+Axi S20 Relic
+Axi C11 Relic
+Neo V11 Relic
+Neo S20 Relic
+Neo P10 Relic
+Meso D8 Relic
+Meso E7 Relic
+Meso L4 Relic
+Lith N19 Relic
+Lith C14 Relic
+Iron Wake Scene
+Axi D6 Relic
+Axi Y3 Relic
+Axi G15 Relic
+Neo N24 Relic
+Neo M6 Relic
+Neo G10 Relic
+Meso A10 Relic
+Meso V15 Relic
+Meso Z6 Relic
+Meso A11 Relic
+Lith A11 Relic
+</script>
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useMemo, useCallback } = React;
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+/* ============ EXPORTERS ============ */
+function csvEscape(s) { const v = String(s ?? ''); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+function buildCSV(rows) { return '\ufeff' + ['序号,中文,English', ...rows.map(r => [r.id, r.zh, r.en].map(csvEscape).join(','))].join('\r\n'); }
+function buildTSV(rows) { return '\ufeff' + ['序号\t中文\tEnglish', ...rows.map(r => r.id + '\t' + (r.zh || '').replace(/\t/g, ' ') + '\t' + (r.en || '').replace(/\t/g, ' '))].join('\r\n'); }
+function buildJSON(rows) { return JSON.stringify(rows.map(r => ({ 序号: r.id, 中文: r.zh, English: r.en })), null, 2); }
+function buildMD(rows) { return ['| 序号 | 中文 | English |', '| --- | --- | --- |', ...rows.map(r => `| ${r.id} | ${(r.zh || '').replace(/\|/g, '\\|')} | ${(r.en || '').replace(/\|/g, '\\|')} |`)].join('\n'); }
+function buildXLSX(rows) {
+  const data = [['序号', '中文', 'English'], ...rows.map(r => [r.id, r.zh, r.en])];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{ wch: 10 }, { wch: 36 }, { wch: 44 }];
+  ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+  ws['!autofilter'] = { ref: `A1:C${data.length}` };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Warframe Bilingual');
+  wb.Props = { Title: 'Warframe 中英文物品对照表', Subject: 'Static mapped item names', Author: 'Roc', Company: 'CSC联盟', CreatedDate: new Date() };
+  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+}
+function downloadBlob(filename, content, mime) {
+  const blob = content instanceof Uint8Array || content instanceof ArrayBuffer
+    ? new Blob([content], { type: mime })
+    : new Blob([content], { type: mime + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+}
 
-        function App() {
-            const [items, setItems] = useState([]);
-            const [search, setSearch] = useState('');
+function Stat({ k, v, sub, c1, c2, gradient }) {
+  return (
+    <div className="stat" style={{ '--c1': c1, '--c2': c2 }}>
+      <div className="k">{k}</div>
+      <div className={'v ' + (gradient ? 'gradient' : '')}>{v}</div>
+      {sub && <div className="sub">{sub}</div>}
+    </div>
+  );
+}
+function SearchIcon() {
+  return (<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>);
+}
 
-            // 初始化：解析内嵌的文本数据
-            useEffect(() => {
-                const rawText = document.getElementById('data-source').textContent;
-                const lines = rawText.split('\n');
-                
-                const parsedItems = [];
-                let lineId = 1;
+function App() {
+  const [rows, setRows] = useState([]);
+  const [filter, setFilter] = useState('');
+  const [toast, setToast] = useState(null);
 
-                lines.forEach(line => {
-                    const trimmed = line.trim();
-                    if (!trimmed) return;
-                    
-                    // 解析 "中文 --> English" 格式
-                    const parts = trimmed.split('-->');
-                    if (parts.length === 2) {
-                        parsedItems.push({
-                            id: lineId++,
-                            zh: parts[0].trim(),
-                            en: parts[1].trim()
-                        });
-                    }
-                });
+  const flashToast = useCallback((msg) => { setToast({ id: Date.now(), msg }); setTimeout(() => setToast(null), 2600); }, []);
 
-                setItems(parsedItems);
-            }, []);
-
-            // 实时检索
-            const filteredItems = useMemo(() => {
-                if (!search.trim()) return items;
-                const q = search.toLowerCase();
-                return items.filter(item => 
-                    item.zh.toLowerCase().includes(q) || 
-                    item.en.toLowerCase().includes(q)
-                );
-            }, [items, search]);
-
-            // 为了保证性能，即使匹配出数千条，渲染时最多展示前 500 条
-            // (导出时依然会导出所有过滤后的条目)
-            const displayItems = filteredItems.slice(0, 500);
-
-            /* =============== 多格式导出工具链 =============== */
-            const downloadBlob = (filename, content, mimeType) => {
-                const blob = new Blob([content], { type: mimeType });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = filename;
-                document.body.appendChild(a); a.click();
-                document.body.removeChild(a); URL.revokeObjectURL(url);
-            };
-
-            const exportCSV = () => {
-                const csv = '\ufeff' + ['序号,中文,English', ...filteredItems.map(r => `${r.id},"${r.zh.replace(/"/g, '""')}","${r.en.replace(/"/g, '""')}"`)].join('\r\n');
-                downloadBlob('warframe_lexicon.csv', csv, 'text/csv;charset=utf-8;');
-            };
-
-            const exportTSV = () => {
-                const tsv = '\ufeff' + ['序号\t中文\tEnglish', ...filteredItems.map(r => `${r.id}\t${r.zh}\t${r.en}`)].join('\r\n');
-                downloadBlob('warframe_lexicon.tsv', tsv, 'text/tab-separated-values;charset=utf-8;');
-            };
-
-            const exportJSON = () => {
-                const json = JSON.stringify(filteredItems.map(r => ({ 序号: r.id, 中文: r.zh, English: r.en })), null, 2);
-                downloadBlob('warframe_lexicon.json', json, 'application/json');
-            };
-
-            const exportMD = () => {
-                const md = ['| 序号 | 中文 | English |', '| --- | --- | --- |', ...filteredItems.map(r => `| ${r.id} | ${r.zh} | ${r.en} |`)].join('\n');
-                downloadBlob('warframe_lexicon.md', md, 'text/markdown');
-            };
-
-            const exportExcel = () => {
-                const data = [['序号', '中文名称', 'English Name'], ...filteredItems.map(r => [r.id, r.zh, r.en])];
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                ws['!cols'] = [{ wch: 8 }, { wch: 40 }, { wch: 50 }]; 
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Warframe Lexicon');
-                XLSX.writeFile(wb, 'warframe_lexicon.xlsx');
-            };
-
-            return (
-                <div className="container">
-                    <header>
-                        <h1>NEXUS LEXICON</h1>
-                        <p className="subtitle">Warframe 纯静态内嵌双语检索系统</p>
-                    </header>
-
-                    <div className="toolbar">
-                        <div className="search-box">
-                            <input 
-                                type="text" 
-                                placeholder="输入中文或英文关键字极速检索..." 
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                        </div>
-                        <div className="export-btns">
-                            <button className="btn btn-excel" onClick={exportExcel}>📊 导出 Excel</button>
-                            <button className="btn" onClick={exportCSV}>CSV</button>
-                            <button className="btn" onClick={exportTSV}>TSV</button>
-                            <button className="btn" onClick={exportJSON}>JSON</button>
-                            <button className="btn" onClick={exportMD}>Markdown</button>
-                        </div>
-                    </div>
-
-                    <div className="table-panel">
-                        <div className="table-header">
-                            <div className="col-id">#</div>
-                            <div className="col-zh">中 文 名 称</div>
-                            <div className="col-en">ENGLISH NAME</div>
-                        </div>
-                        <div className="table-body">
-                            {displayItems.length === 0 ? (
-                                <div className="status-msg">🕸️ 虚空之中一无所获。</div>
-                            ) : (
-                                displayItems.map((item) => (
-                                    <div className="row" key={item.id}>
-                                        <div className="col-id">{String(item.id).padStart(3, '0')}</div>
-                                        <div className="col-zh">{item.zh}</div>
-                                        <div className="col-en">{item.en}</div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                        <div className="data-count">
-                            展示 {displayItems.length} 条 / 匹配 {filteredItems.length} 条 / 共 {items.length} 条数据
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+  // 页面加载时自动从上方的 script 标签中读取并按行组合数据
+  useEffect(() => {
+    const zhText = document.getElementById('data-zh').textContent.trim().split(/\r?\n/);
+    const enText = document.getElementById('data-en').textContent.trim().split(/\r?\n/);
     
-    <footer>
-        Project Mod by <span>ROC</span> | Fully Embedded Static Version
-    </footer>
+    const maxLen = Math.max(zhText.length, enText.length);
+    const parsedRows = [];
+    
+    for (let i = 0; i < maxLen; i++) {
+        // 过滤掉 等特殊标记，保留纯物品名称
+        const zh = (zhText[i] || '').replace(/\\s*/g, '').trim();
+        const en = (enText[i] || '').replace(/\\s*/g, '').trim();
+        if (zh || en) {
+            parsedRows.push({ id: i + 1, zh, en });
+        }
+    }
+    setRows(parsedRows);
+  }, []);
+
+  const visibleRows = useMemo(() => {
+    let r = rows;
+    if (filter.trim()) {
+      const q = filter.trim().toLowerCase();
+      r = r.filter(x => x.zh.toLowerCase().includes(q) || x.en.toLowerCase().includes(q));
+    }
+    return r;
+  }, [rows, filter]);
+
+  const doExport = useCallback((format) => {
+    if (!visibleRows.length) return;
+    const date = new Date().toISOString().slice(0, 10);
+    const stem = `warframe-bilingual_${date}`;
+    if (format === 'csv')       downloadBlob(stem + '.csv',  buildCSV(visibleRows),  'text/csv');
+    else if (format === 'tsv')  downloadBlob(stem + '.tsv',  buildTSV(visibleRows),  'text/tab-separated-values');
+    else if (format === 'json') downloadBlob(stem + '.json', buildJSON(visibleRows), 'application/json');
+    else if (format === 'md')   downloadBlob(stem + '.md',   buildMD(visibleRows),   'text/markdown');
+    else if (format === 'xlsx') downloadBlob(stem + '.xlsx', buildXLSX(visibleRows), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    flashToast(`已导出 ${visibleRows.length} 项 (${format.toUpperCase()})`);
+  }, [visibleRows, flashToast]);
+
+  return (
+    <div className="app">
+      <header className="hero">
+        <div className="hero-row">
+          <div className="hero-left">
+            <span className="eyebrow"><span className="pulse"></span>WARFRAME · MARKETPLACE LEXICON<span className="div"></span>v4 · STATIC DB</span>
+            <h1 className="title"><span className="cn">中英对照</span><span className="en">BILINGUAL ITEM ATLAS</span></h1>
+            <p className="lead">基于 <code>warframe.market</code> <strong>V2 API</strong>，已获取所有的可交易物品名称，并可导出 <strong>Excel / CSV / TSV / JSON / Markdown</strong>。</p>
+          </div>
+          <div className="author-card">
+            <div className="author-label">AUTHOR</div>
+            <div className="roc">ROC</div>
+            <div className="from">来自 <strong>[CSC联盟]</strong></div>
+            <div className="source">数据来源：<span>Warframe.Market</span></div>
+          </div>
+        </div>
+      </header>
+
+      {rows.length > 0 && (
+        <>
+          <div className="stats fade-in">
+            <Stat k="TOTAL ITEMS" v={rows.length.toLocaleString()} sub="全量静态数据总数" c1="var(--c-cyan)" c2="var(--c-violet)" gradient />
+            <Stat k="MATCHED" v={visibleRows.length.toLocaleString()} sub="当前搜索匹配结果" c1="var(--c-violet)" c2="var(--c-pink)" gradient />
+            <Stat k="DATA SOURCE" v="Static" sub="本地零延迟提取" c1="var(--c-pink)" c2="var(--c-amber)" gradient />
+            <Stat k="STATUS" v="Ready" sub="完全断网可用" c1="var(--c-amber)" c2="var(--c-lime)" gradient />
+          </div>
+
+          <section className="card fade-in">
+            <div className="heading"><span className="badge-num">01</span><h2>EXPORT</h2><span className="heading-cn">· 导出数据</span></div>
+            <div className="toolbar">
+              <button className="export-xlsx" onClick={() => doExport('xlsx')} disabled={!visibleRows.length}>📊 下载 Excel (.xlsx)</button>
+              <button className="primary" onClick={() => doExport('csv')} disabled={!visibleRows.length}>下载 CSV</button>
+              <button onClick={() => doExport('tsv')} disabled={!visibleRows.length}>下载 TSV</button>
+              <button onClick={() => doExport('json')} disabled={!visibleRows.length}>下载 JSON</button>
+              <button onClick={() => doExport('md')} disabled={!visibleRows.length}>下载 Markdown</button>
+              <span className="spacer"></span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text-faint)', letterSpacing: '0.1em' }}>
+                将导出当前检索到的 <strong style={{ color: '#fff' }}>{visibleRows.length.toLocaleString()}</strong> 项
+              </span>
+            </div>
+          </section>
+
+          <section className="card table-card fade-in" style={{ marginTop: 18 }}>
+            <div className="table-toolbar">
+              <div className="search-wrap"><SearchIcon /><input type="text" placeholder="模糊搜索 中文 / English ..." value={filter} onChange={e => setFilter(e.target.value)} /></div>
+              <span className="count">显示 {visibleRows.length.toLocaleString()} / {rows.length.toLocaleString()}</span>
+            </div>
+            <div className="table-scroll">
+              {visibleRows.length === 0 ? (
+                <div className="empty"><div className="big">无匹配条目</div><div>尝试更换搜索关键词 ↑</div></div>
+              ) : (
+                <table>
+                  <thead><tr><th style={{ width: 66 }}># 行号</th><th style={{ width: '45%' }}>中文</th><th>English</th></tr></thead>
+                  <tbody>
+                    {visibleRows.slice(0, 800).map((r, i) => (
+                      <tr key={r.id}>
+                        <td style={{ color: 'var(--text-faint)', fontFamily: 'var(--mono)', fontSize: 11 }}>{r.id}</td>
+                        <td className="zh">{r.zh}</td>
+                        <td className="en">{r.en}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {visibleRows.length > 800 && (<div style={{ padding: '12px 20px', color: 'var(--text-faint)', fontSize: 11, fontFamily: 'var(--mono)', borderTop: '1px solid var(--line)' }}>
+                表格仅预览前 800 行 — 完整 {visibleRows.length.toLocaleString()} 行会包含在导出文件中
+              </div>)}
+            </div>
+          </section>
+        </>
+      )}
+
+      {rows.length === 0 && (
+        <section className="card fade-in"><div className="empty"><div className="big">未检测到数据</div><div>请在 HTML 代码中的 script 标签内放入 TXT 文本</div></div></section>
+      )}
+
+      <footer className="foot">
+        <div className="left">
+          <div><strong>项目状态</strong> · <span style={{ fontFamily: 'var(--mono)', background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>Static Offline Ready</span></div>
+          <div>本工具基于纯静态构建，无需服务器介入即可高速检索与导出。</div>
+        </div>
+        <div className="sig">
+          <div style={{ marginBottom: 6 }}>AUTHOR</div>
+          <div className="by">ROC</div>
+          <div style={{ marginTop: 4 }}>FROM · [CSC联盟]</div>
+        </div>
+      </footer>
+
+      {toast && (<div className="toast"><span className="ok">✓</span><span>{toast.msg}</span></div>)}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
